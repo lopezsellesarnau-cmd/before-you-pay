@@ -17,6 +17,7 @@
     "typescript": "5.9"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.11.2"
+    "fast-xml-parser": "^5.11.2",
+    "unpdf": "^1.9.1"
   }
 }

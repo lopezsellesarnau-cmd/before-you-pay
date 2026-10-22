@@ -1,8 +1,8 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { run, type Report } from './agent.ts';
 import { toMarkdown } from './render/markdown.ts';
-
+import { readDocument } from './sources/document.ts';
 // node src/cli.ts examples/argumosa-3c.listing.txt [--contract file] [--answer address.door=C] [--json out.json] [--markdown out.md]
 
 const { values, positionals } = parseArgs({
@@ -24,8 +24,8 @@ if (!positionals[0] && !values.contract) {
 
 const answers = Object.fromEntries((values.answer ?? []).map((a) => a.split('=', 2) as [string, string]));
 const report = await run({
-  listing: positionals[0] ? readFileSync(positionals[0], 'utf8') : undefined,
-  contract: values.contract ? readFileSync(values.contract, 'utf8') : undefined,
+  listing: positionals[0] ? await readDocument(positionals[0]) : undefined,
+  contract: values.contract ? await readDocument(values.contract) : undefined,
   answers,
   lat: values.lat ? Number(values.lat) : undefined,
   lon: values.lon ? Number(values.lon) : undefined,
