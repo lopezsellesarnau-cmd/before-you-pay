@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const CACHE_DIR = new URL('../../data/cache/', import.meta.url).pathname;
+const CACHE_DIR = fileURLToPath(new URL('../../data/cache/', import.meta.url));
 
 export interface Fetched {
   body: string;

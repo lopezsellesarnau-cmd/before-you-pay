@@ -1,4 +1,6 @@
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Evidence log: one JSON line per agent step in logs/<run>.jsonl. The same entries go
 // into the report as `trace`, so the UI can show how the answer was reached.
@@ -20,9 +22,9 @@ export class Trace {
 
   constructor(runId: string) {
     this.runId = runId;
-    const dir = new URL('../logs/', import.meta.url).pathname;
+    const dir = fileURLToPath(new URL('../logs/', import.meta.url));
     mkdirSync(dir, { recursive: true });
-    this.file = `${dir}${runId}.jsonl`;
+    this.file = join(dir, `${runId}.jsonl`);
   }
 
   log(agent: string, action: string, detail?: unknown) {

@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { sql, zetarisConfigured } from './zetaris.ts';
 
 // SERPAVI reference rents. Main path: Zetaris, which federates our Postgres (byp_pg).
@@ -19,8 +20,8 @@ export interface RentReference {
 }
 
 const COLS = 'area_code, area_level, area_name, year, dwelling, eur_m2_p25, eur_m2_p50, eur_m2_p75, sample_n';
-const FULL_CSV = new URL('../../data/serpavi/serpavi_long.csv', import.meta.url).pathname;
-const SAMPLE_CSV = new URL('../../data/sample/serpavi_sample.csv', import.meta.url).pathname;
+const FULL_CSV = fileURLToPath(new URL('../../data/serpavi/serpavi_long.csv', import.meta.url));
+const SAMPLE_CSV = fileURLToPath(new URL('../../data/sample/serpavi_sample.csv', import.meta.url));
 
 /** Latest reference for the area codes, most specific first. */
 export async function reference(codes: string[], dwelling: RentReference['dwelling']): Promise<{ ref?: RentReference; error?: string }> {
@@ -64,7 +65,7 @@ function pick(rows: Record<string, string>[], codes: string[], via: RentReferenc
 }
 
 function readCsv(file: string): Record<string, string>[] {
-  const [head, ...lines] = readFileSync(file, 'utf8').trim().split('\n');
+  const [head, ...lines] = readFileSync(file, 'utf8').trim().split(/\r?\n/);
   const cols = head.split(',');
   return lines.map((l) => Object.fromEntries(splitCsv(l).map((v, i) => [cols[i], v])));
 }
