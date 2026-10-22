@@ -1,0 +1,22 @@
+{
+  "name": "before-you-pay",
+  "version": "0.1.0",
+  "description": "An agent that cross-checks a Spanish rental listing against Catastro, SERPAVI and the LAU before you pay the deposit.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "check": "node --env-file-if-exists=.env src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "5.9"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.11.2"
+  }
+}

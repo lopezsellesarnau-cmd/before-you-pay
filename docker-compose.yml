@@ -1,0 +1,23 @@
+# Our own records database, federated by Zetaris as the `byp_pg` datasource.
+# It joins the Zetaris platform's network so the driver reaches it as byp-db:5432.
+services:
+  byp-db:
+    image: postgres:16-alpine
+    container_name: byp-db
+    environment:
+      POSTGRES_DB: byp
+      POSTGRES_USER: byp
+      POSTGRES_PASSWORD: ${BYP_DB_PASSWORD:-byp-local}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - byp-db:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    mem_limit: 256m
+    networks: [zetaris]
+volumes:
+  byp-db:
+networks:
+  zetaris:
+    name: zetaris_default
+    external: true
