@@ -1,0 +1,370 @@
+{
+  "runId": "2026-10-22T10-50-29-488Z-e79091",
+  "createdAt": "2026-10-22T10:50:42.679Z",
+  "provider": "nvidia",
+  "summary": {
+    "red": 0,
+    "amber": 0,
+    "unknown": 0,
+    "green": 4
+  },
+  "findings": [
+    {
+      "checkId": "area",
+      "status": "green",
+      "title": "Advertised size vs Catastro",
+      "detail": "Advertised 60 m², Catastro records 56 m² construidos.",
+      "evidence": [
+        "f10",
+        "f18"
+      ],
+      "explanation": "The advertised size is 60 m² [f10], while Catastro records 56 m² construidos [f18]."
+    },
+    {
+      "checkId": "use",
+      "status": "green",
+      "title": "Registered as a dwelling",
+      "detail": "Catastro registers the unit as Residencial.",
+      "evidence": [
+        "f19"
+      ],
+      "explanation": "The Catastro records the unit as Residencial, confirming it is registered as a dwelling. [f19]"
+    },
+    {
+      "checkId": "deposit",
+      "status": "green",
+      "title": "Fianza (deposit)",
+      "detail": "Fianza of 1 month, as the law sets.",
+      "evidence": [
+        "f13",
+        "f28"
+      ],
+      "explanation": "The listing specifies a deposit of 1 month [f13]. Spanish law (LAU art. 36) sets the maximum deposit at 1 month for residential rentals [f28]."
+    },
+    {
+      "checkId": "price",
+      "status": "green",
+      "title": "Rent vs what people pay nearby",
+      "detail": "1200 € for 56 m² on record is 21.43 €/m²; in this area half of leases pay under 17.7 €/m² and three in four under 21.78 €/m².",
+      "evidence": [
+        "f12",
+        "f18",
+        "f31",
+        "f32"
+      ],
+      "explanation": "The listing rent of 1200 € for 56 m² works out to 21.43 €/m². [f12][f18] This is above the area median of 17.7 €/m² and the 75th percentile of 21.78 €/m². [f31][f32]"
+    }
+  ],
+  "questions": [],
+  "notes": [],
+  "facts": [
+    {
+      "attribute": "unit.area_m2",
+      "value": 60,
+      "sourceId": "src_listing_1",
+      "quote": "60 m2",
+      "confidence": "high",
+      "id": "f10"
+    },
+    {
+      "attribute": "terms.rent_eur",
+      "value": 1200,
+      "sourceId": "src_listing_1",
+      "quote": "1.200 €/mes",
+      "confidence": "high",
+      "id": "f12"
+    },
+    {
+      "attribute": "terms.deposit_months",
+      "value": 1,
+      "sourceId": "src_listing_1",
+      "quote": "Fianza: 1 mes",
+      "confidence": "high",
+      "id": "f13"
+    },
+    {
+      "attribute": "unit.area_m2",
+      "value": 56,
+      "unit": "m² construidos",
+      "sourceId": "src_catastro_16",
+      "confidence": "high",
+      "id": "f18"
+    },
+    {
+      "attribute": "unit.use",
+      "value": "Residencial",
+      "sourceId": "src_catastro_16",
+      "confidence": "high",
+      "id": "f19"
+    },
+    {
+      "attribute": "law.max_deposit_months",
+      "value": 1,
+      "sourceId": "src_boe_27",
+      "quote": "A la celebración del contrato será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas y de dos en el arrendamiento para uso distinto del de vivienda.",
+      "confidence": "high",
+      "id": "f28"
+    },
+    {
+      "attribute": "ref.eur_m2_p50",
+      "value": 17.7,
+      "unit": "€/m²/month",
+      "sourceId": "src_serpavi_29",
+      "confidence": "high",
+      "id": "f31"
+    },
+    {
+      "attribute": "ref.eur_m2_p75",
+      "value": 21.78,
+      "unit": "€/m²/month",
+      "sourceId": "src_serpavi_29",
+      "confidence": "high",
+      "id": "f32"
+    }
+  ],
+  "sources": [
+    {
+      "kind": "listing",
+      "label": "Listing",
+      "retrievedAt": "2026-10-22T10:50:29.490Z",
+      "live": true,
+      "id": "src_listing_1"
+    },
+    {
+      "kind": "renter",
+      "label": "Your answer",
+      "retrievedAt": "2026-10-22T10:50:29.491Z",
+      "live": true,
+      "id": "src_renter_2"
+    },
+    {
+      "kind": "catastro",
+      "label": "Catastro, ref. 0835114VK4703F0022QQ",
+      "url": "https://www1.sedecatastro.gob.es/CYCBienInmueble/OVCConCiud.aspx?RefC=0835114VK4703F0022QQ",
+      "retrievedAt": "2026-10-22T10:50:38.734Z",
+      "live": true,
+      "id": "src_catastro_16"
+    },
+    {
+      "kind": "boe",
+      "label": "LAU art. 36",
+      "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a36",
+      "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
+      "retrievedAt": "2026-10-22T10:50:38.858Z",
+      "live": true,
+      "id": "src_boe_27"
+    },
+    {
+      "kind": "serpavi",
+      "label": "SERPAVI 2024, Madrid census district 01",
+      "url": "https://www.mivau.gob.es/vivienda/alquila-bien-es-tu-derecho/serpavi",
+      "version": "dataset 2011-2024, via zetaris",
+      "retrievedAt": "2026-10-22T10:50:39.874Z",
+      "live": true,
+      "id": "src_serpavi_29"
+    }
+  ],
+  "trace": [
+    {
+      "t": "2026-10-22T10:50:29.490Z",
+      "step": 1,
+      "agent": "planner",
+      "action": "start",
+      "detail": {
+        "provider": "nvidia",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:29.491Z",
+      "step": 2,
+      "agent": "planner",
+      "action": "next: extract",
+      "detail": {
+        "kind": "extract",
+        "doc": "listing"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:33.768Z",
+      "step": 3,
+      "agent": "extractor",
+      "action": "11 fields from listing",
+      "detail": [
+        {
+          "attribute": "address.street_type",
+          "value": "CL",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.street",
+          "value": "ARGUMOSA",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.number",
+          "value": "11",
+          "quote": "Calle Argumosa 11"
+        },
+        {
+          "attribute": "address.floor",
+          "value": "3",
+          "quote": "3º"
+        },
+        {
+          "attribute": "address.municipality",
+          "value": "Madrid",
+          "quote": "Madrid"
+        },
+        {
+          "attribute": "unit.area_m2",
+          "value": 60,
+          "quote": "60 m2"
+        },
+        {
+          "attribute": "unit.bedrooms",
+          "value": 2,
+          "quote": "2 dormitorios"
+        },
+        {
+          "attribute": "terms.rent_eur",
+          "value": 1200,
+          "quote": "1.200 €/mes"
+        },
+        {
+          "attribute": "terms.deposit_months",
+          "value": 1,
+          "quote": "Fianza: 1 mes"
+        },
+        {
+          "attribute": "terms.agency_fee_to_tenant",
+          "value": false,
+          "quote": "Sin honorarios de agencia"
+        },
+        {
+          "attribute": "terms.rental_type",
+          "value": "habitual",
+          "quote": "Contrato de vivienda habitual"
+        }
+      ]
+    },
+    {
+      "t": "2026-10-22T10:50:33.769Z",
+      "step": 4,
+      "agent": "critic",
+      "action": "extraction: kept 11, dropped 0",
+      "detail": []
+    },
+    {
+      "t": "2026-10-22T10:50:33.770Z",
+      "step": 5,
+      "agent": "planner",
+      "action": "next: catastro",
+      "detail": {
+        "kind": "catastro",
+        "strategy": "address"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:38.738Z",
+      "step": 6,
+      "agent": "catastro",
+      "action": "address: 32 units, 1 match",
+      "detail": {
+        "url": "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/Consulta_DNPLOC?Provincia=MADRID&Municipio=MADRID&Sigla=CL&Calle=ARGUMOSA&Numero=11",
+        "live": true
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:38.739Z",
+      "step": 7,
+      "agent": "critic",
+      "action": "catastro: one unit identified"
+    },
+    {
+      "t": "2026-10-22T10:50:38.740Z",
+      "step": 8,
+      "agent": "planner",
+      "action": "next: law",
+      "detail": {
+        "kind": "law",
+        "attributes": [
+          "law.max_deposit_months"
+        ]
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:38.868Z",
+      "step": 9,
+      "agent": "law",
+      "action": "fetched 1 rules from the BOE",
+      "detail": {
+        "missing": []
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:38.868Z",
+      "step": 10,
+      "agent": "planner",
+      "action": "next: price",
+      "detail": {
+        "kind": "price"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:39.874Z",
+      "step": 11,
+      "agent": "price",
+      "action": "SERPAVI 2024 distrito_censal 2807901 via zetaris",
+      "detail": {
+        "areaCode": "2807901",
+        "level": "distrito_censal",
+        "areaName": "Madrid",
+        "year": 2024,
+        "dwelling": "colectiva",
+        "p25": 14,
+        "p50": 17.7,
+        "p75": 21.78,
+        "sampleN": 20518,
+        "via": "zetaris"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:39.876Z",
+      "step": 12,
+      "agent": "critic",
+      "action": "price: Catastro municipal district matched to SERPAVI census district (same in Madrid; check elsewhere)"
+    },
+    {
+      "t": "2026-10-22T10:50:39.876Z",
+      "step": 13,
+      "agent": "planner",
+      "action": "next: check",
+      "detail": {
+        "kind": "check"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:39.892Z",
+      "step": 14,
+      "agent": "checks",
+      "action": "4 findings",
+      "detail": [
+        "area:green",
+        "use:green",
+        "deposit:green",
+        "price:green"
+      ]
+    },
+    {
+      "t": "2026-10-22T10:50:42.677Z",
+      "step": 15,
+      "agent": "planner",
+      "action": "done",
+      "detail": {
+        "findings": 4,
+        "questions": 0
+      }
+    }
+  ]
+}

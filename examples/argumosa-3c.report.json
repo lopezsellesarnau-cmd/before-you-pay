@@ -1,0 +1,524 @@
+{
+  "runId": "2026-10-22T10-49-54-718Z-ee0a8e",
+  "createdAt": "2026-10-22T10:50:21.284Z",
+  "provider": "nvidia",
+  "summary": {
+    "red": 5,
+    "amber": 1,
+    "unknown": 0,
+    "green": 1
+  },
+  "findings": [
+    {
+      "checkId": "area",
+      "status": "red",
+      "title": "Advertised size vs Catastro",
+      "detail": "Advertised 72 m², Catastro records 56 m² construidos: 29% more than on record.",
+      "evidence": [
+        "f10",
+        "f23"
+      ],
+      "question": "Catastro has this flat at 56 m². Where do the other 16 m² come from, and are they legalised?",
+      "explanation": "The listing advertises 72 m² [f10], but Catastro records 56 m² construidos [f23], a difference of 29% more than on record."
+    },
+    {
+      "checkId": "deposit",
+      "status": "red",
+      "title": "Fianza (deposit)",
+      "detail": "Asks for 2 months of fianza; the law sets 1 month for housing.",
+      "evidence": [
+        "f14",
+        "f33"
+      ],
+      "question": "The legal fianza is 1 month of rent. Anything above that has to be an additional guarantee, capped too. Can you correct it?",
+      "explanation": "The listing requests a deposit of 2 months' rent [f14], but Spanish law limits the maximum deposit to 1 month for housing [f33]."
+    },
+    {
+      "checkId": "rent_insurance",
+      "status": "red",
+      "title": "Rent default insurance",
+      "detail": "Requires the tenant to take out rent default insurance (seguro de impago), which the law no longer allows.",
+      "evidence": [
+        "f18",
+        "f34"
+      ],
+      "question": "The law does not allow requiring a seguro de impago from the tenant. Will you drop it?",
+      "explanation": "The listing requires rent default insurance [f18], but Spanish law (LAU art. 36) explicitly forbids demanding such insurance from the tenant [f34]."
+    },
+    {
+      "checkId": "agency_fees",
+      "status": "red",
+      "title": "Agency fees",
+      "detail": "Charges the tenant agency or contract fees of 1450 €; these are the landlord's by law.",
+      "evidence": [
+        "f16",
+        "f17",
+        "f36"
+      ],
+      "question": "Agency and contract fees cannot be passed on to the tenant. Will the landlord pay them?",
+      "explanation": "The listing charges the tenant 1,450 € in agency fees [f17], but Spanish law (LAU art. 20) forbids landlords from passing these costs to the tenant, even indirectly [f36]."
+    },
+    {
+      "checkId": "taxes",
+      "status": "red",
+      "title": "Property tax (IBI)",
+      "detail": "Passes IBI or other property taxes to the tenant, which the law no longer allows.",
+      "evidence": [
+        "f19",
+        "f37"
+      ],
+      "question": "Property taxes such as IBI cannot be charged to the tenant. Can that clause go?",
+      "explanation": "The listing states that IBI tax is charged to the tenant [f19]. However, current law explicitly forbids passing property taxes like IBI to the tenant [f37]."
+    },
+    {
+      "checkId": "price",
+      "status": "amber",
+      "title": "Rent vs what people pay nearby",
+      "detail": "1450 € for 56 m² on record is 25.89 €/m²; in this area half of leases pay under 17.7 €/m² and three in four under 21.78 €/m².",
+      "evidence": [
+        "f13",
+        "f23",
+        "f40",
+        "f41"
+      ],
+      "question": "The rent is above what three in four leases in the area pay per m². What justifies it?",
+      "explanation": "The listed rent of 1450 € for 56 m² works out to 25.89 €/m² [f13][f23]. In the reference area, half of leases pay under 17.7 €/m² [f40] and three in four pay under 21.78 €/m² [f41]."
+    },
+    {
+      "checkId": "use",
+      "status": "green",
+      "title": "Registered as a dwelling",
+      "detail": "Catastro registers the unit as Residencial.",
+      "evidence": [
+        "f24"
+      ],
+      "explanation": "The Catastro records the unit as Residencial, which confirms it is registered as a dwelling. [f24]"
+    }
+  ],
+  "questions": [],
+  "notes": [],
+  "facts": [
+    {
+      "attribute": "unit.area_m2",
+      "value": 72,
+      "sourceId": "src_listing_1",
+      "quote": "72 m2 construidos",
+      "confidence": "high",
+      "id": "f10"
+    },
+    {
+      "attribute": "terms.rent_eur",
+      "value": 1450,
+      "sourceId": "src_listing_1",
+      "quote": "1.450 €/mes",
+      "confidence": "high",
+      "id": "f13"
+    },
+    {
+      "attribute": "terms.deposit_months",
+      "value": 2,
+      "sourceId": "src_listing_1",
+      "quote": "Fianza: 2 meses",
+      "confidence": "high",
+      "id": "f14"
+    },
+    {
+      "attribute": "terms.agency_fee_to_tenant",
+      "value": true,
+      "sourceId": "src_listing_1",
+      "quote": "Honorarios de agencia: 1.450 € a cargo del inquilino",
+      "confidence": "high",
+      "id": "f16"
+    },
+    {
+      "attribute": "terms.agency_fee_eur",
+      "value": 1450,
+      "sourceId": "src_listing_1",
+      "quote": "Honorarios de agencia: 1.450 € a cargo del inquilino",
+      "confidence": "high",
+      "id": "f17"
+    },
+    {
+      "attribute": "terms.rent_insurance_required",
+      "value": true,
+      "sourceId": "src_listing_1",
+      "quote": "Seguro de impago obligatorio",
+      "confidence": "high",
+      "id": "f18"
+    },
+    {
+      "attribute": "terms.taxes_to_tenant",
+      "value": true,
+      "sourceId": "src_listing_1",
+      "quote": "IBI a cargo del inquilino",
+      "confidence": "high",
+      "id": "f19"
+    },
+    {
+      "attribute": "unit.area_m2",
+      "value": 56,
+      "unit": "m² construidos",
+      "sourceId": "src_catastro_21",
+      "confidence": "high",
+      "id": "f23"
+    },
+    {
+      "attribute": "unit.use",
+      "value": "Residencial",
+      "sourceId": "src_catastro_21",
+      "confidence": "high",
+      "id": "f24"
+    },
+    {
+      "attribute": "law.max_deposit_months",
+      "value": 1,
+      "sourceId": "src_boe_32",
+      "quote": "A la celebración del contrato será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas y de dos en el arrendamiento para uso distinto del de vivienda.",
+      "confidence": "high",
+      "id": "f33"
+    },
+    {
+      "attribute": "law.rent_insurance_forbidden",
+      "value": true,
+      "sourceId": "src_boe_32",
+      "quote": "En ningún caso podrá exigirse al arrendatario la contratación de seguros de impago de renta u otras coberturas análogas.",
+      "confidence": "high",
+      "id": "f34"
+    },
+    {
+      "attribute": "law.agency_fees_forbidden",
+      "value": true,
+      "sourceId": "src_boe_35",
+      "quote": "Los gastos de gestión inmobiliaria y de formalización del contrato no podrán ser repercutidos al arrendatario, ni directa ni indirectamente, bajo ningún concepto o denominación.",
+      "confidence": "high",
+      "id": "f36"
+    },
+    {
+      "attribute": "law.taxes_to_tenant_forbidden",
+      "value": true,
+      "sourceId": "src_boe_35",
+      "quote": "En ningún caso podrán imponerse los tributos asociados a la vivienda a la parte arrendataria, excepto en los supuestos en los que dicha parte tenga la condición de obligado tributario.",
+      "confidence": "high",
+      "id": "f37"
+    },
+    {
+      "attribute": "ref.eur_m2_p50",
+      "value": 17.7,
+      "unit": "€/m²/month",
+      "sourceId": "src_serpavi_38",
+      "confidence": "high",
+      "id": "f40"
+    },
+    {
+      "attribute": "ref.eur_m2_p75",
+      "value": 21.78,
+      "unit": "€/m²/month",
+      "sourceId": "src_serpavi_38",
+      "confidence": "high",
+      "id": "f41"
+    }
+  ],
+  "sources": [
+    {
+      "kind": "listing",
+      "label": "Listing",
+      "retrievedAt": "2026-10-22T10:49:54.720Z",
+      "live": true,
+      "id": "src_listing_1"
+    },
+    {
+      "kind": "catastro",
+      "label": "Catastro, ref. 0835114VK4703F0022QQ",
+      "url": "https://www1.sedecatastro.gob.es/CYCBienInmueble/OVCConCiud.aspx?RefC=0835114VK4703F0022QQ",
+      "retrievedAt": "2026-10-22T10:50:01.784Z",
+      "live": true,
+      "id": "src_catastro_21"
+    },
+    {
+      "kind": "boe",
+      "label": "LAU art. 36",
+      "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a36",
+      "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
+      "retrievedAt": "2026-10-22T10:50:01.970Z",
+      "live": true,
+      "id": "src_boe_32"
+    },
+    {
+      "kind": "boe",
+      "label": "LAU art. 20",
+      "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a20",
+      "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
+      "retrievedAt": "2026-10-22T10:50:02.068Z",
+      "live": true,
+      "id": "src_boe_35"
+    },
+    {
+      "kind": "serpavi",
+      "label": "SERPAVI 2024, Madrid census district 01",
+      "url": "https://www.mivau.gob.es/vivienda/alquila-bien-es-tu-derecho/serpavi",
+      "version": "dataset 2011-2024, via zetaris",
+      "retrievedAt": "2026-10-22T10:50:04.154Z",
+      "live": true,
+      "id": "src_serpavi_38"
+    }
+  ],
+  "trace": [
+    {
+      "t": "2026-10-22T10:49:54.720Z",
+      "step": 1,
+      "agent": "planner",
+      "action": "start",
+      "detail": {
+        "provider": "nvidia",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b"
+      }
+    },
+    {
+      "t": "2026-10-22T10:49:54.720Z",
+      "step": 2,
+      "agent": "planner",
+      "action": "next: extract",
+      "detail": {
+        "kind": "extract",
+        "doc": "listing"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:00.211Z",
+      "step": 3,
+      "agent": "extractor",
+      "action": "19 fields from listing",
+      "detail": [
+        {
+          "attribute": "address.street_type",
+          "value": "CL",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.street",
+          "value": "ARGUMOSA",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.number",
+          "value": "11",
+          "quote": "Calle Argumosa 11"
+        },
+        {
+          "attribute": "address.floor",
+          "value": "3",
+          "quote": "3º C"
+        },
+        {
+          "attribute": "address.door",
+          "value": "C",
+          "quote": "3º C"
+        },
+        {
+          "attribute": "address.municipality",
+          "value": "Madrid",
+          "quote": "Madrid"
+        },
+        {
+          "attribute": "address.province",
+          "value": "Madrid",
+          "quote": "Madrid"
+        },
+        {
+          "attribute": "unit.catastro_ref",
+          "value": null,
+          "quote": null
+        },
+        {
+          "attribute": "unit.area_m2",
+          "value": 72,
+          "quote": "72 m2 construidos"
+        },
+        {
+          "attribute": "unit.area_kind",
+          "value": "construidos",
+          "quote": "72 m2 construidos"
+        },
+        {
+          "attribute": "unit.bedrooms",
+          "value": 2,
+          "quote": "2 dormitorios"
+        },
+        {
+          "attribute": "terms.rent_eur",
+          "value": 1450,
+          "quote": "1.450 €/mes"
+        },
+        {
+          "attribute": "terms.deposit_months",
+          "value": 2,
+          "quote": "Fianza: 2 meses"
+        },
+        {
+          "attribute": "terms.extra_guarantee_months",
+          "value": null,
+          "quote": null
+        },
+        {
+          "attribute": "terms.agency_fee_to_tenant",
+          "value": true,
+          "quote": "Honorarios de agencia: 1.450 € a cargo del inquilino"
+        },
+        {
+          "attribute": "terms.agency_fee_eur",
+          "value": 1450,
+          "quote": "Honorarios de agencia: 1.450 € a cargo del inquilino"
+        },
+        {
+          "attribute": "terms.rent_insurance_required",
+          "value": true,
+          "quote": "Seguro de impago obligatorio"
+        },
+        {
+          "attribute": "terms.taxes_to_tenant",
+          "value": true,
+          "quote": "IBI a cargo del inquilino"
+        },
+        {
+          "attribute": "terms.rental_type",
+          "value": "habitual",
+          "quote": "Contrato de vivienda habitual"
+        }
+      ]
+    },
+    {
+      "t": "2026-10-22T10:50:00.213Z",
+      "step": 4,
+      "agent": "critic",
+      "action": "extraction: kept 17, dropped 2",
+      "detail": [
+        "unit.catastro_ref (no quote)",
+        "terms.extra_guarantee_months (no quote)"
+      ]
+    },
+    {
+      "t": "2026-10-22T10:50:00.213Z",
+      "step": 5,
+      "agent": "planner",
+      "action": "next: catastro",
+      "detail": {
+        "kind": "catastro",
+        "strategy": "address"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:01.789Z",
+      "step": 6,
+      "agent": "catastro",
+      "action": "address: 32 units, 1 match",
+      "detail": {
+        "url": "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/Consulta_DNPLOC?Provincia=MADRID&Municipio=MADRID&Sigla=CL&Calle=ARGUMOSA&Numero=11",
+        "live": true
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:01.789Z",
+      "step": 7,
+      "agent": "critic",
+      "action": "catastro: one unit identified"
+    },
+    {
+      "t": "2026-10-22T10:50:01.790Z",
+      "step": 8,
+      "agent": "planner",
+      "action": "next: law",
+      "detail": {
+        "kind": "law",
+        "attributes": [
+          "law.max_deposit_months",
+          "law.rent_insurance_forbidden",
+          "law.agency_fees_forbidden",
+          "law.taxes_to_tenant_forbidden"
+        ]
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:02.076Z",
+      "step": 9,
+      "agent": "law",
+      "action": "fetched 4 rules from the BOE",
+      "detail": {
+        "missing": []
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:02.094Z",
+      "step": 10,
+      "agent": "planner",
+      "action": "next: price",
+      "detail": {
+        "kind": "price"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:04.154Z",
+      "step": 11,
+      "agent": "price",
+      "action": "SERPAVI 2024 distrito_censal 2807901 via zetaris",
+      "detail": {
+        "areaCode": "2807901",
+        "level": "distrito_censal",
+        "areaName": "Madrid",
+        "year": 2024,
+        "dwelling": "colectiva",
+        "p25": 14,
+        "p50": 17.7,
+        "p75": 21.78,
+        "sampleN": 20518,
+        "via": "zetaris"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:04.154Z",
+      "step": 12,
+      "agent": "critic",
+      "action": "price: Catastro municipal district matched to SERPAVI census district (same in Madrid; check elsewhere)"
+    },
+    {
+      "t": "2026-10-22T10:50:04.155Z",
+      "step": 13,
+      "agent": "planner",
+      "action": "next: check",
+      "detail": {
+        "kind": "check"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:04.155Z",
+      "step": 14,
+      "agent": "checks",
+      "action": "7 findings",
+      "detail": [
+        "area:red",
+        "use:green",
+        "deposit:red",
+        "rent_insurance:red",
+        "agency_fees:red",
+        "taxes:red",
+        "price:amber"
+      ]
+    },
+    {
+      "t": "2026-10-22T10:50:04.919Z",
+      "step": 15,
+      "agent": "critic",
+      "action": "explanation of area rejected: cites no evidence",
+      "detail": "The listing advertises 72 m², but Catastro records show 56 m² construidos [f10, f23]. This represents a 29% discrepancy between the advertised size and the official records."
+    },
+    {
+      "t": "2026-10-22T10:50:21.283Z",
+      "step": 16,
+      "agent": "planner",
+      "action": "done",
+      "detail": {
+        "findings": 7,
+        "questions": 0
+      }
+    }
+  ]
+}

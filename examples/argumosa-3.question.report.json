@@ -1,0 +1,245 @@
+{
+  "runId": "2026-10-22T10-50-21-566Z-3670dd",
+  "createdAt": "2026-10-22T10:50:29.221Z",
+  "provider": "nvidia",
+  "summary": {
+    "red": 0,
+    "amber": 0,
+    "unknown": 0,
+    "green": 1
+  },
+  "findings": [
+    {
+      "checkId": "deposit",
+      "status": "green",
+      "title": "Fianza (deposit)",
+      "detail": "Fianza of 1 month, as the law sets.",
+      "evidence": [
+        "f10",
+        "f15"
+      ],
+      "explanation": "The listing specifies a deposit of 1 month's rent [f10]. Spanish law (LAU art. 36) sets the maximum deposit at 1 month for residential rentals [f15]."
+    }
+  ],
+  "questions": [
+    {
+      "attribute": "address.door",
+      "text": "This building has 30 registered dwellings and 7 on floor 3. Which floor and door is the flat?",
+      "options": [
+        "3º A",
+        "3º B",
+        "3º C",
+        "3º D",
+        "3º E",
+        "3º F",
+        "3º G"
+      ],
+      "reason": "7 candidate units",
+      "id": "q13"
+    }
+  ],
+  "notes": [],
+  "facts": [
+    {
+      "attribute": "terms.deposit_months",
+      "value": 1,
+      "sourceId": "src_listing_1",
+      "quote": "Fianza: 1 mes",
+      "confidence": "high",
+      "id": "f10"
+    },
+    {
+      "attribute": "law.max_deposit_months",
+      "value": 1,
+      "sourceId": "src_boe_14",
+      "quote": "A la celebración del contrato será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas y de dos en el arrendamiento para uso distinto del de vivienda.",
+      "confidence": "high",
+      "id": "f15"
+    }
+  ],
+  "sources": [
+    {
+      "kind": "listing",
+      "label": "Listing",
+      "retrievedAt": "2026-10-22T10:50:21.567Z",
+      "live": true,
+      "id": "src_listing_1"
+    },
+    {
+      "kind": "boe",
+      "label": "LAU art. 36",
+      "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a36",
+      "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
+      "retrievedAt": "2026-10-22T10:50:28.628Z",
+      "live": true,
+      "id": "src_boe_14"
+    }
+  ],
+  "trace": [
+    {
+      "t": "2026-10-22T10:50:21.567Z",
+      "step": 1,
+      "agent": "planner",
+      "action": "start",
+      "detail": {
+        "provider": "nvidia",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:21.567Z",
+      "step": 2,
+      "agent": "planner",
+      "action": "next: extract",
+      "detail": {
+        "kind": "extract",
+        "doc": "listing"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:26.454Z",
+      "step": 3,
+      "agent": "extractor",
+      "action": "11 fields from listing",
+      "detail": [
+        {
+          "attribute": "address.street_type",
+          "value": "CL",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.street",
+          "value": "ARGUMOSA",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.number",
+          "value": "11",
+          "quote": "Calle Argumosa 11"
+        },
+        {
+          "attribute": "address.floor",
+          "value": "3",
+          "quote": "3º"
+        },
+        {
+          "attribute": "address.municipality",
+          "value": "Madrid",
+          "quote": "Madrid"
+        },
+        {
+          "attribute": "unit.area_m2",
+          "value": 60,
+          "quote": "60 m2"
+        },
+        {
+          "attribute": "unit.bedrooms",
+          "value": 2,
+          "quote": "2 dormitorios"
+        },
+        {
+          "attribute": "terms.rent_eur",
+          "value": 1200,
+          "quote": "1.200 €/mes"
+        },
+        {
+          "attribute": "terms.deposit_months",
+          "value": 1,
+          "quote": "Fianza: 1 mes"
+        },
+        {
+          "attribute": "terms.agency_fee_to_tenant",
+          "value": false,
+          "quote": "Sin honorarios de agencia"
+        },
+        {
+          "attribute": "terms.rental_type",
+          "value": "habitual",
+          "quote": "Contrato de vivienda habitual"
+        }
+      ]
+    },
+    {
+      "t": "2026-10-22T10:50:26.454Z",
+      "step": 4,
+      "agent": "critic",
+      "action": "extraction: kept 11, dropped 0",
+      "detail": []
+    },
+    {
+      "t": "2026-10-22T10:50:26.471Z",
+      "step": 5,
+      "agent": "planner",
+      "action": "next: catastro",
+      "detail": {
+        "kind": "catastro",
+        "strategy": "address"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:28.523Z",
+      "step": 6,
+      "agent": "catastro",
+      "action": "address: 32 units, 7 match",
+      "detail": {
+        "url": "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/Consulta_DNPLOC?Provincia=MADRID&Municipio=MADRID&Sigla=CL&Calle=ARGUMOSA&Numero=11",
+        "live": true
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:28.524Z",
+      "step": 7,
+      "agent": "critic",
+      "action": "catastro: ask — 7 candidate units, listing does not say which"
+    },
+    {
+      "t": "2026-10-22T10:50:28.525Z",
+      "step": 8,
+      "agent": "planner",
+      "action": "next: law",
+      "detail": {
+        "kind": "law",
+        "attributes": [
+          "law.max_deposit_months"
+        ]
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:28.634Z",
+      "step": 9,
+      "agent": "law",
+      "action": "fetched 1 rules from the BOE",
+      "detail": {
+        "missing": []
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:28.634Z",
+      "step": 10,
+      "agent": "planner",
+      "action": "next: check",
+      "detail": {
+        "kind": "check"
+      }
+    },
+    {
+      "t": "2026-10-22T10:50:28.635Z",
+      "step": 11,
+      "agent": "checks",
+      "action": "1 findings",
+      "detail": [
+        "deposit:green"
+      ]
+    },
+    {
+      "t": "2026-10-22T10:50:29.220Z",
+      "step": 12,
+      "agent": "planner",
+      "action": "done",
+      "detail": {
+        "findings": 1,
+        "questions": 1
+      }
+    }
+  ]
+}
