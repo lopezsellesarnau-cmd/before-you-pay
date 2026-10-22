@@ -29,6 +29,17 @@ test('a PDF contract is extracted and its additional guarantee is checked', asyn
   assert.ok(finding?.evidence.length);
 });
 
+test('a PDF contract with a different rent is flagged against the listing', async () => {
+  const contract = await readDocument(fileURLToPath(new URL('../examples/contract-contradicts-listing.pdf', import.meta.url)));
+  const r = await run({ listing: read('argumosa-3c.listing.txt'), contract });
+  const finding = r.findings.find((f) => f.checkId === 'consistency');
+  assert.equal(finding?.status, 'amber');
+  const rents = r.facts.filter((f) => finding.evidence.includes(f.id) && f.attribute === 'terms.rent_eur').map((f) => f.value);
+  assert.deepEqual(rents.sort(), [1450, 1650]);
+  // The price check uses the rent in the contract, not the advertised one.
+  assert.match(r.findings.find((f) => f.checkId === 'price')?.detail ?? '', /^1650 €/);
+});
+
 test('a listing without the door makes the agent ask instead of guessing', async () => {
   const r = await run({ listing: read('argumosa-3.listing.txt') });
   assert.equal(r.findings.find((f) => f.checkId === 'area'), undefined);
