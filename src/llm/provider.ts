@@ -25,7 +25,7 @@ export async function provider(): Promise<Provider> {
     return { name, model, generate: (r) => anthropic(model, r) };
   }
   if (name === 'nvidia') {
-    const model = process.env.LLM_MODEL ?? 'nvidia/llama-3.3-nemotron-super-49b-v1.5';
+    const model = process.env.LLM_MODEL ?? 'nvidia/nemotron-3.5-lightning-30b-a3b';
     return { name, model, generate: (r) => nvidia(model, r) };
   }
   const { sampleGenerate } = await import('./sample.ts');
@@ -55,15 +55,18 @@ async function nvidia(model: string, r: GenerateRequest) {
       model,
       temperature: 0,
       max_tokens: 2000,
+      // Extraction and explanation are not reasoning tasks (the checks are code): 1 s instead of 10+.
+      chat_template_kwargs: { enable_thinking: false },
       messages: [
-        { role: 'system', content: `/no_think\n${r.system}` },
+        { role: 'system', content: r.system },
         { role: 'user', content: r.prompt },
       ],
     }),
   });
   const json: any = await res.json();
   if (!res.ok) throw new Error(`nvidia: ${json?.detail ?? json?.error?.message ?? res.status}`);
-  return json.choices[0].message.content as string;
+  // Reasoning models may prepend their thinking; only the answer matters.
+  return String(json.choices[0].message.content ?? '').replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 }
 
 /** Pull the first JSON object or array out of a model answer. */

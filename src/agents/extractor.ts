@@ -36,7 +36,7 @@ export interface Extracted {
 
 const SYSTEM = `You extract facts from Spanish rental listings and contracts.
 Return ONLY a JSON array of {"attribute","value","quote"}.
-- "quote" must be copied character for character from the document, as short as possible but containing the value.
+- "quote" must be copied character for character from the document and contain both the value and the words that say what it is ("Honorarios de agencia: 1.450 €", not "1.450 €").
 - Only include a field if the document states it. Never infer, never guess.
 - Numbers as JSON numbers (1450, not "1.450 €"). Booleans as true/false.`;
 

@@ -51,3 +51,26 @@ test('checks: size inflated over 20% is red', () => {
   w.addFact({ attribute: 'unit.area_m2', value: 56, sourceId: cat.id, confidence: 'high' });
   assert.equal(CHECKS.find((c) => c.id === 'area')!.run(w)!.status, 'red');
 });
+
+test('extraction: a quote about another field is dropped (no 0-month guarantee from the fianza line)', () => {
+  const { w, src } = world();
+  w.addFact({ attribute: 'terms.rent_eur', value: 1450, quote: 'Precio: 1.450 €/mes', sourceId: src.id, confidence: 'medium' });
+  w.addFact({ attribute: 'terms.extra_guarantee_months', value: 0, quote: 'Fianza: 2 meses', sourceId: src.id, confidence: 'medium' });
+  assert.match(reviewExtraction(w, src.id, listing).dropped[0], /about something else/);
+});
+
+test('extraction: a deposit given in euros converts to months', () => {
+  const { w, src } = world();
+  const text = 'Precio: 1.450 €/mes. Fianza de 2.900 €.';
+  w.addFact({ attribute: 'terms.rent_eur', value: 1450, quote: 'Precio: 1.450 €/mes', sourceId: src.id, confidence: 'medium' });
+  w.addFact({ attribute: 'terms.deposit_months', value: 2, quote: 'Fianza de 2.900 €', sourceId: src.id, confidence: 'medium' });
+  assert.equal(reviewExtraction(w, src.id, text).dropped.length, 0);
+});
+
+test('explanation: 1,450 and 1.450 are the same number', () => {
+  const { w, src } = world();
+  const a = w.addFact({ attribute: 'terms.agency_fee_eur', value: 1450, quote: '1.450 €', sourceId: src.id, confidence: 'high' });
+  const f = { checkId: 'agency_fees', status: 'red' as const, title: 'Fees', detail: 'Fees of 1450 €.', evidence: [a.id] };
+  assert.equal(reviewExplanation(w, f, `Fees of 1,450 € [${a.id}].`).ok, true);
+  assert.equal(reviewExplanation(w, f, `Fees of 1.450 € [${a.id}].`).ok, true);
+});

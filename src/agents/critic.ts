@@ -12,6 +12,19 @@ export type Verdict =
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
 
+// A quote must be about the field it supports, not just contain a matching number:
+// "Fianza: 2 meses" cannot back an additional guarantee.
+const TOPIC: Record<string, RegExp> = {
+  'terms.deposit_months': /fianza/i,
+  'terms.extra_guarantee_months': /garant[ií]a|aval|dep[oó]sito/i,
+  'terms.agency_fee_to_tenant': /honorario|agencia|gesti[oó]n|comisi[oó]n|inmobiliaria/i,
+  'terms.agency_fee_eur': /honorario|agencia|gesti[oó]n|comisi[oó]n|inmobiliaria/i,
+  'terms.rent_insurance_required': /seguro|impago/i,
+  'terms.taxes_to_tenant': /ibi|impuesto|tributo|tasa/i,
+  'terms.rent_eur': /€|eur|precio|renta|alquiler|mes/i,
+  'unit.area_m2': /m2|m²|metros/i,
+};
+
 /** Every extracted value must be backed by a verbatim quote that contains it. */
 export function reviewExtraction(world: WorldStore, sourceId: string, text: string): { kept: number; dropped: string[] } {
   const doc = norm(text);
@@ -22,7 +35,9 @@ export function reviewExtraction(world: WorldStore, sourceId: string, text: stri
       ? 'no quote'
       : !doc.includes(norm(f.quote))
         ? 'quote not in document'
-        : typeof f.value === 'number' && !numberIn(f.quote, f.value, world.value<number>('terms.rent_eur', ['listing', 'contract']))
+        : TOPIC[f.attribute] && !TOPIC[f.attribute].test(f.quote)
+          ? 'quote is about something else'
+          : typeof f.value === 'number' && !numberIn(f.quote, f.value, world.value<number>('terms.rent_eur', ['listing', 'contract']))
           ? 'value not in quote'
           : undefined;
     if (why) {
@@ -52,7 +67,8 @@ function numberIn(quote: string, value: number, rent?: number): boolean {
   const words: Record<number, string> = { 1: 'un', 2: 'dos', 3: 'tres', 4: 'cuatro', 5: 'cinco', 6: 'seis' };
   if (nums.includes(value)) return true;
   if (words[value] && new RegExp(`\\b${words[value]}[ao]?\\b`, 'i').test(quote)) return true;
-  return !!rent && nums.some((n) => Math.abs(n / rent - value) < 0.01);
+  // Only figures that look like euros (at least half a month of rent) count as a conversion.
+  return !!rent && value > 0 && nums.some((n) => n >= rent / 2 && Math.abs(n / rent - value) < 0.01);
 }
 
 export function reviewCatastro(world: WorldStore, r: CatastroResult | undefined, matches: CatastroUnit[]): Verdict {
@@ -102,17 +118,18 @@ export function reviewExplanation(world: WorldStore, f: Finding, text: string): 
   if (foreign.length) return { ok: false, action: 'retry', reason: `cites facts outside the evidence: ${foreign.join(', ')}` };
 
   const allowed = new Set<string>();
-  const harvest = (s: string) => [...s.replace(/(\d)\.(?=\d{3}\b)/g, '$1').matchAll(/\d+(?:[.,]\d+)?/g)].forEach((m) => allowed.add(m[0].replace(',', '.')));
+  const harvest = (s: string) => [...s.replace(/(\d)[.,](?=\d{3}\b)/g, '$1').matchAll(/\d+(?:[.,]\d+)?/g)].forEach((m) => allowed.add(m[0].replace(',', '.')));
   harvest(f.detail);
   harvest(f.question ?? '');
   for (const id of f.evidence) {
     const fact = world.fact(id)!;
     harvest(String(fact.value));
+    harvest(fact.attribute); // "p75" makes "75th percentile" legitimate
     harvest(fact.quote ?? '');
     harvest(world.sourceOf(fact).label);
     harvest(world.sourceOf(fact).version ?? '');
   }
-  const body = text.replace(/\[f\d+\]/g, '').replace(/(\d)\.(?=\d{3}\b)/g, '$1');
+  const body = text.replace(/\[f\d+\]/g, '').replace(/(\d)[.,](?=\d{3}\b)/g, '$1');
   const invented = [...body.matchAll(/\d+(?:[.,]\d+)?/g)].map((m) => m[0].replace(',', '.')).filter((n) => !allowed.has(n));
   if (invented.length) return { ok: false, action: 'retry', reason: `numbers not in the evidence: ${invented.join(', ')}` };
   return { ok: true };
