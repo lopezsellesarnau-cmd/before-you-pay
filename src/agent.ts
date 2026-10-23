@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import * as catastro from './agents/catastro.ts';
-import { reviewCatastro, reviewExplanation, reviewExtraction, reviewFinding } from './agents/critic.ts';
+import { assessConfidence, reviewCatastro, reviewExplanation, reviewExtraction, reviewFinding } from './agents/critic.ts';
 import { draftEmail, emailFindings, stripCitations, templateDraft, type EmailDraft } from './agents/email.ts';
 import { explain } from './agents/explainer.ts';
 import { extract, ingestExtraction } from './agents/extractor.ts';
@@ -139,6 +139,13 @@ export async function run(input: Input) {
           trace.log('critic', `dropped ${f.checkId}: ${v.reason}`);
           continue;
         }
+        const a = assessConfidence(world, f);
+        f.confidence = a.confidence;
+        if (a.reasons.length) f.caveats = a.reasons;
+        if (a.confidence === 'low') {
+          f.needsReview = true;
+          trace.log('critic', `${f.checkId}: low confidence, needs a human check`, a.reasons);
+        }
         findings.push(f);
       }
       trace.log('checks', `${findings.length} findings`, findings.map((f) => `${f.checkId}:${f.status}`));
@@ -238,6 +245,7 @@ function report(runId: string, world: WorldStore, trace: Trace, provider: string
       amber: world.findings.filter((f) => f.status === 'amber').length,
       unknown: world.findings.filter((f) => f.status === 'unknown').length,
       green: world.findings.filter((f) => f.status === 'green').length,
+      needsReview: world.findings.filter((f) => f.needsReview).length,
     },
     findings: world.findings,
     questions: world.questions,

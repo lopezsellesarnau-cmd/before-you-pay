@@ -6,7 +6,7 @@ export function toMarkdown(r: Report): string {
   const out = [
     '# Before you pay the deposit',
     '',
-    `${r.summary.red} red · ${r.summary.amber} amber · ${r.summary.unknown} unknown · ${r.summary.green} ok`,
+    `${r.summary.red} red · ${r.summary.amber} amber · ${r.summary.unknown} unknown · ${r.summary.green} ok${r.summary.needsReview ? ` · ${r.summary.needsReview} to check yourself` : ''}`,
     '',
   ];
   for (const f of r.findings) {
@@ -14,6 +14,8 @@ export function toMarkdown(r: Report): string {
     const cites = [...new Set(f.evidence.map((id) => fact.get(id)!.sourceId))].map((id) => src.get(id)!);
     out.push(`**Sources:** ${cites.map(cite).join(' | ')}`, '');
     if (f.question) out.push(`Ask: ${f.question}`, '');
+    if (f.needsReview) out.push('**Check this yourself before relying on it.** Left out of the email.', '');
+    if (f.caveats?.length) out.push(...f.caveats.map((c) => `- ${c}`), '');
   }
   if (r.questions.length) {
     out.push('## Open questions', '');

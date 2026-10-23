@@ -75,9 +75,9 @@ export function templateDraft(world: WorldStore, findings: Finding[]): { subject
   };
 }
 
-/** Findings worth writing about: the red and amber ones that carry a question. */
+/** Findings worth writing about: red and amber, with a question, and solid enough to put in writing. */
 export function emailFindings(findings: Finding[]) {
-  return findings.filter((f) => (f.status === 'red' || f.status === 'amber') && f.question);
+  return findings.filter((f) => (f.status === 'red' || f.status === 'amber') && f.question && !f.needsReview);
 }
 
 export async function draftEmail(generate: Generate, world: WorldStore, findings: Finding[], feedback?: string) {

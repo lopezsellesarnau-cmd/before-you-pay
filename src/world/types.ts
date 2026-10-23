@@ -44,6 +44,12 @@ export interface Finding {
   question?: string;
   /** Plain-language explanation written by the explainer, grounded in `evidence`. */
   explanation?: string;
+  /** How far the evidence can be trusted; set by the critic once the finding is made. */
+  confidence?: Confidence;
+  /** Why it is not high. */
+  caveats?: string[];
+  /** Low confidence: a person should check it before relying on it. Kept out of the email. */
+  needsReview?: boolean;
 }
 
 export interface Question {

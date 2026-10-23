@@ -7,6 +7,7 @@ import { readDocument } from '../src/sources/document.ts';
 // End to end on the saved copies of Catastro and the BOE (data/cache), no network,
 // no model, no Zetaris: what a judge gets after cloning.
 process.env.OFFLINE = '1';
+process.env.CACHE_MAX_AGE_DAYS = '100000'; // the saved copies age; the tests should not
 process.env.LLM_PROVIDER = 'sample';
 delete process.env.ZETARIS_USER;
 const { run } = await import('../src/agent.ts');
@@ -54,4 +55,29 @@ test('the report carries an email draft that waits for the renter', async () => 
   assert.deepEqual(r.email?.covers.sort(), ['agency_fees', 'area', 'deposit', 'price', 'rent_insurance', 'taxes']);
   assert.doesNotMatch(r.email!.body, /\[f\d+\]/);
   assert.match(r.email!.body, /1450 €/);
+});
+
+test('a finding built on a figure the listing and contract disagree on goes to human review', async () => {
+  const contract = await readDocument(fileURLToPath(new URL('../examples/contract-contradicts-listing.pdf', import.meta.url)));
+  const r = await run({ listing: read('argumosa-3c.listing.txt'), contract });
+  const price = r.findings.find((f) => f.checkId === 'price')!;
+  assert.equal(price.confidence, 'low');
+  assert.equal(price.needsReview, true);
+  assert.match(price.caveats!.join(' '), /listing says 1450 and the contract 1650/);
+  assert.equal(r.summary.needsReview, r.findings.filter((f) => f.needsReview).length);
+  assert.ok(!r.email?.covers.includes('price'));
+});
+
+test('saved copies lower confidence; old ones send the finding to review', async () => {
+  const r = await run({ listing: read('argumosa-3c.listing.txt') });
+  const area = r.findings.find((f) => f.checkId === 'area')!;
+  assert.equal(area.confidence, 'medium');
+  assert.ok(!area.needsReview);
+  process.env.CACHE_MAX_AGE_DAYS = '-1';
+  try {
+    const old = await run({ listing: read('argumosa-3c.listing.txt') });
+    assert.ok(old.findings.find((f) => f.checkId === 'area')!.needsReview);
+  } finally {
+    process.env.CACHE_MAX_AGE_DAYS = '100000';
+  }
 });

@@ -20,8 +20,8 @@ Real outputs (Nemotron + live Catastro/BOE + SERPAVI via Zetaris), made with `--
 
 Shape:
 
-- `summary`: counts by status (`red`, `amber`, `unknown`, `green`).
-- `findings[]`: sorted red → green. `title`, `status`, `explanation` (plain text with `[fN]` citations), `question` (what to ask the landlord), `evidence` (fact ids).
+- `summary`: counts by status (`red`, `amber`, `unknown`, `green`), plus `needsReview`.
+- `findings[]`: sorted red → green. `title`, `status`, `explanation` (plain text with `[fN]` citations), `question` (what to ask the landlord), `evidence` (fact ids), `confidence` (`high`/`medium`/`low`), `caveats` (why it is not high), `needsReview` (low confidence: show "check this yourself"; these are left out of the email).
 - `facts[]`: the facts behind the findings. `attribute`, `value`, `unit`, `quote` (verbatim from the listing or the law), `sourceId`, `confidence`.
 - `sources[]`: `label`, `url`, `version` (e.g. the BOE norm in force), `live` (false = saved copy).
 - `questions[]`: what the agent needs from the renter. `text`, `options`, `attribute` (send the answer back as `answers: { [attribute]: option }`).

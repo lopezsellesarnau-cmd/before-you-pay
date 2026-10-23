@@ -1,6 +1,6 @@
 import type { CatastroResult, CatastroUnit } from '../sources/catastro.ts';
 import type { WorldStore } from '../world/store.ts';
-import type { Finding } from '../world/types.ts';
+import type { Confidence, Finding } from '../world/types.ts';
 
 // Critic (code). Sits after every step and decides whether its output can be trusted,
 // has to be retried another way, or needs the renter. It is what turns a pipeline into
@@ -140,4 +140,49 @@ export function inventedNumbers(world: WorldStore, findings: Finding[], text: st
   }
   const body = text.replace(/\[f\d+\]/g, '').replace(/(\d)[.,](?=\d{3}\b)/g, '$1');
   return [...body.matchAll(/\d+(?:[.,]\d+)?/g)].map((m) => m[0].replace(',', '.')).filter((n) => !allowed.has(n));
+}
+
+const RANK = { high: 2, medium: 1, low: 0 } as const;
+const DAY = 86_400_000;
+
+/**
+ * How far the renter can lean on a finding, from its evidence. Low means a person has to
+ * look before relying on it: it is flagged in the report and kept out of the email.
+ */
+export function assessConfidence(world: WorldStore, f: Finding, now = Date.now()): { confidence: Confidence; reasons: string[] } {
+  let confidence: Confidence = 'high';
+  const reasons: string[] = [];
+  const lower = (to: Confidence, why: string) => {
+    if (RANK[to] < RANK[confidence]) confidence = to;
+    if (!reasons.includes(why)) reasons.push(why);
+  };
+  const facts = f.evidence.map((id) => world.fact(id)!);
+
+  for (const fact of facts) {
+    const s = world.sourceOf(fact);
+    if (!s.live && ['catastro', 'boe', 'serpavi'].includes(s.kind)) {
+      const age = Math.floor((now - Date.parse(s.retrievedAt)) / DAY);
+      if (age > Number(process.env.CACHE_MAX_AGE_DAYS ?? 30)) lower('low', `${s.label} comes from a copy saved ${age} days ago; it may have changed.`);
+      else lower('medium', `${s.label} comes from a saved copy, not a live answer.`);
+    }
+    if (fact.confidence === 'low' && fact.attribute.startsWith('ref.')) {
+      lower('low', `The SERPAVI figure rests on only ${world.value('ref.sample_n')} leases.`);
+    }
+  }
+
+  // The finding stands on a figure the listing and the contract disagree on.
+  if (f.checkId !== 'consistency') {
+    const fromDocs = facts.filter((x) => ['listing', 'contract'].includes(world.sourceOf(x).kind));
+    for (const attr of new Set(fromDocs.map((x) => x.attribute))) {
+      const l = world.get(attr, ['listing']);
+      const c = world.get(attr, ['contract']);
+      if (l && c && l.value !== c.value && !world.has(attr, ['renter'])) lower('low', `The listing says ${l.value} and the contract ${c.value} for ${attr}; this uses the contract.`);
+    }
+  }
+
+  if (f.checkId === 'price') {
+    if (!facts.some((x) => x.attribute === 'unit.area_m2' && world.sourceOf(x).kind === 'catastro')) lower('medium', 'Price per m² uses the advertised size; Catastro did not confirm it.');
+    if (world.value('ref.level') === 'municipio' && world.has('unit.district', ['catastro'])) lower('medium', 'No SERPAVI figure for the district; compared with the whole municipality.');
+  }
+  return { confidence, reasons };
 }
