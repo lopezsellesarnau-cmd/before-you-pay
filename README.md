@@ -2,9 +2,10 @@
 
 We are building an agent that helps **people renting a flat in Spain** avoid paying a deposit
 for a flat that isn't what the listing says, by **cross-checking the listing against public
-records and the law** using **the listing, Catastro, SERPAVI and the LAU (federated through
-Zetaris)**, producing **a report of discrepancies, each with its source, and the questions to
-ask the landlord before paying**.
+records and the law** using **the listing and contract, Catastro, SERPAVI and the LAU in force
+(federated through Zetaris)**, producing **a report of discrepancies, each with its source,
+and a polite email to the landlord with the questions to ask before paying**, which the
+renter approves and sends.
 
 Open Agent Hackathon 2026 · Track 1, Solving Fragmented Intelligence.
 
@@ -36,11 +37,15 @@ npm test                                           # offline, no keys, no Zetari
 npm run check -- examples/argumosa-3c.listing.txt  # live Catastro + BOE
 npm run check -- examples/argumosa-3.listing.txt   # asks which flat
 npm run check -- examples/argumosa-3.listing.txt --answer 'address.door=3º C'
+npm run check -- examples/argumosa-3c.scam.listing.txt                     # scam signals
+npm run check -- examples/argumosa-3c.listing.txt --contract examples/contract-contradicts-listing.pdf
 OFFLINE=1 npm run check -- examples/argumosa-3c.listing.txt   # saved copies only
 ```
 
-`--contract file.txt` adds a contract; `--json out.json` writes the full report (findings,
-questions, facts, sources, trace) for the UI. Copy `.env.example` to `.env` to choose the
+`--contract` takes a contract as text or PDF (text layer; scanned PDFs need OCR).
+`--json out.json` writes the full report (findings, questions, facts, sources, email draft,
+trace) for the UI; `--markdown out.md` writes it as a document. Real reports are in
+[`examples/`](examples/README.md). Copy `.env.example` to `.env` to choose the
 model and connect Zetaris.
 
 ## How it works
@@ -96,16 +101,33 @@ Fallback: when `ZETARIS_USER` is unset or the query fails, the same rows are rea
 local CSV (or `data/sample/`); the report and the trace say which path was used.
 
 **Meterless (required).** Engine used: **World Model** (WorldStore + IngestPipeline +
-ContextBuilder), implemented in `src/world/`. The store holds every fact with provenance;
-the specialists' `ingest*` functions are the ingest pipeline; `buildFindingContext` is the
-only way the model sees the world. The model is injected (`src/llm/provider.ts`), there is a
-sample mode with no credentials, and evidence is written as JSONL to `logs/`.
+ContextBuilder), implemented in `src/world/`.
 
-**Cursor (required).** The project is developed in Cursor, with Claude Code running in
-Cursor's terminal.
+- *WorldStore* (`src/world/store.ts`): every fact the agents learn, with its source, verbatim
+  quote and confidence. Agents never pass data to each other directly; they read and write
+  the world, and the planner chooses the next step from what is in it.
+- *IngestPipeline*: the specialists' `ingest*` functions (`src/agents/extractor.ts`,
+  `catastro.ts`, `law.ts`, `price.ts`) turn each source into facts; the critic reviews every
+  batch before anything uses it.
+- *ContextBuilder* (`src/world/context.ts`): the only view the model gets, the facts behind
+  one finding with their ids and citations. That is why the critic can reject any number or
+  citation that is not in it.
 
-**NVIDIA (optional).** `LLM_PROVIDER=nvidia` runs extraction and explanations on Nemotron
-via NIM.
+The model is injected (`src/llm/provider.ts`), there is a sample mode with no credentials,
+and evidence is written as JSONL to `logs/`.
+
+**Cursor (required).** The project lives in Cursor: Claude Code runs in Cursor's terminal for
+most of the code, and Cursor's own agent built the Markdown export (`src/render/markdown.ts`
+and its test, commit `0b05161`).
+
+**NVIDIA (optional).** NVIDIA Nemotron on NIM is the model of the demo
+(`LLM_PROVIDER=nvidia`, default `nvidia/nemotron-3.5-lightning-30b-a3b`): extraction with
+quotes, explanations and the email draft. Thinking is turned off
+(`chat_template_kwargs.enable_thinking: false`) because the reasoning is done by the code;
+a full run takes about 25 s. Claude (`LLM_PROVIDER=anthropic`) is supported as an
+alternative. Everything Nemotron produces goes through the critic or the Risk guard: in
+`examples/argumosa-3c.report.json` the critic rejects two of its price explanations (no
+citation; invented numbers) and the report shows the rule outcome instead.
 
 ## Data
 
@@ -113,10 +135,11 @@ via NIM.
 |---|---|---|
 | Catastro (OVC web services) | live, free, no key | surface, use, year, floor/door, INE municipality, district |
 | BOE consolidated legislation API | live, free, no key | LAU arts. 20 and 36, version in force |
+| Listing and contract | pasted text or PDF | the terms, each with its verbatim quote |
 | SERPAVI 2011-2024 (MIVAU) | downloaded, via Zetaris | reference rent €/m² by census district and municipality |
 
 SERPAVI comes from rents declared in income tax: it is a reference of what is paid, not a
-legal cap and not asking prices. Example listings are synthetic (real buildings so Catastro
+legal cap and not asking prices. Example listings and contracts are synthetic (real buildings so Catastro
 answers; invented text, prices and conditions). No personal data.
 
 ## Prior components

@@ -1,6 +1,25 @@
 {
   "name": "before-you-pay",
   "track": "Solving Fragmented Intelligence",
+  "summary": "Checks a Spanish rental listing and contract against Catastro, the LAU in force (BOE) and SERPAVI via Zetaris; every finding cites its source; drafts the email to the landlord for the renter to approve.",
+  "repository": "https://github.com/lopezsellesarnau-cmd/before-you-pay",
+  "run": {
+    "offline": "npm install && npm test",
+    "demo": "npm run check -- examples/argumosa-3c.listing.txt",
+    "report_json": "npm run check -- examples/argumosa-3c.listing.txt --json report.json"
+  },
+  "agents": [
+    { "name": "planner", "kind": "code", "file": "src/agent.ts" },
+    { "name": "extractor", "kind": "llm", "file": "src/agents/extractor.ts" },
+    { "name": "catastro", "kind": "code", "file": "src/agents/catastro.ts" },
+    { "name": "law", "kind": "code", "file": "src/agents/law.ts" },
+    { "name": "price", "kind": "code", "file": "src/agents/price.ts" },
+    { "name": "checks", "kind": "code", "file": "src/checks/index.ts" },
+    { "name": "critic", "kind": "code", "file": "src/agents/critic.ts", "role": "reviews every step; retries, asks the renter, or sends low-confidence findings to human review" },
+    { "name": "explainer", "kind": "llm", "file": "src/agents/explainer.ts" },
+    { "name": "email", "kind": "llm", "file": "src/agents/email.ts", "role": "draft only; never sends" },
+    { "name": "riskguard", "kind": "code", "file": "src/agents/riskguard.ts" }
+  ],
   "meterless": {
     "engines": [
       {
@@ -15,9 +34,22 @@
   },
   "zetaris": {
     "datasource": "byp_pg (PostgreSQL, federated)",
-    "tables": ["serpavi_rent", "stressed_zones"],
+    "tables": ["serpavi_rent"],
     "client": "src/sources/zetaris.ts",
+    "query": "src/sources/serpavi.ts",
     "fallback": "local CSV (data/serpavi or data/sample), reported in the trace"
   },
-  "sources": ["Catastro OVC", "BOE consolidated legislation API", "SERPAVI 2011-2024"]
+  "nvidia": {
+    "provider": "NVIDIA NIM",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "used_for": ["extraction with verbatim quotes", "explanations", "email draft"],
+    "config": "LLM_PROVIDER=nvidia, NVIDIA_API_KEY"
+  },
+  "cursor": {
+    "environment": "Developed in Cursor; Claude Code in Cursor's terminal",
+    "cursor_agent_work": "src/render/markdown.ts, test/markdown.test.ts (commit 0b05161)"
+  },
+  "sources": ["Catastro OVC", "BOE consolidated legislation API", "SERPAVI 2011-2024", "listing and contract (text or PDF)"],
+  "data": "Synthetic listings and contracts on real buildings; no personal data",
+  "prior_components": "None; planning documents prepared before 22 Oct 2026 are declared in the submission"
 }
