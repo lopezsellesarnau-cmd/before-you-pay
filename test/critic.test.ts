@@ -74,3 +74,23 @@ test('explanation: 1,450 and 1.450 are the same number', () => {
   assert.equal(reviewExplanation(w, f, `Fees of 1,450 € [${a.id}].`).ok, true);
   assert.equal(reviewExplanation(w, f, `Fees of 1.450 € [${a.id}].`).ok, true);
 });
+
+test('risk guard: the template passes; threats, invented figures, commitments and personal data do not', async () => {
+  const { reviewEmail } = await import('../src/agents/riskguard.ts');
+  const { templateDraft } = await import('../src/agents/email.ts');
+  const { w, src } = world();
+  const law = w.addSource({ kind: 'boe', label: 'LAU art. 36', retrievedAt: '', live: true });
+  const dep = w.addFact({ attribute: 'terms.deposit_months', value: 2, quote: 'Fianza: 2 meses', sourceId: src.id, confidence: 'medium' });
+  const max = w.addFact({ attribute: 'law.max_deposit_months', value: 1, sourceId: law.id, confidence: 'high' });
+  const f = { checkId: 'deposit', status: 'red' as const, title: 'Fianza', detail: 'Asks for 2 months of fianza; the law sets 1 month for housing.', evidence: [dep.id, max.id], question: 'Can you correct it?' };
+
+  const t = templateDraft(w, [f]);
+  assert.deepEqual(reviewEmail(w, [f], t), { ok: true });
+  const bad = (body: string) => reviewEmail(w, [f], { subject: 'Piso', body: `Hola, la fianza [${dep.id}]. ${body}` });
+  assert.match((bad('Esto es ilegal.') as any).reason, /accusatory/);
+  assert.match((bad('Si no, lo denunciaré.') as any).reason, /legal action/);
+  assert.match((bad('Pido 3 meses menos.') as any).reason, /numbers not in the evidence: 3/);
+  assert.match((bad('Acepto el resto de condiciones.') as any).reason, /commits/);
+  assert.match((bad('Llámame al 612 345 678.') as any).reason, /phone/);
+  assert.match((reviewEmail(w, [f], { subject: 'Piso', body: 'Hola, ¿podemos hablar?' }) as any).reason, /leaves out red findings: deposit/);
+});

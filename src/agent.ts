@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import * as catastro from './agents/catastro.ts';
 import { reviewCatastro, reviewExplanation, reviewExtraction, reviewFinding } from './agents/critic.ts';
+import { draftEmail, emailFindings, stripCitations, templateDraft, type EmailDraft } from './agents/email.ts';
 import { explain } from './agents/explainer.ts';
 import { extract, ingestExtraction } from './agents/extractor.ts';
 import { fetchLaw } from './agents/law.ts';
 import { lookupReference } from './agents/price.ts';
+import { reviewEmail } from './agents/riskguard.ts';
 import { CHECKS } from './checks/index.ts';
-import { provider } from './llm/provider.ts';
+import { provider, type Generate } from './llm/provider.ts';
 import { Trace } from './log.ts';
 import { WorldStore } from './world/store.ts';
 import type { Finding, Source } from './world/types.ts';
@@ -43,6 +45,7 @@ export async function run(input: Input) {
   }
   ingestAnswers(world, input);
 
+  let email: EmailDraft | undefined;
   const state = { extracted: new Set<string>(), tried: new Set<catastro.Strategy>(), catastroSettled: false, lawTried: new Set<string>(), priceTried: false };
 
   // Planner: look at the world, pick what is still worth doing. Ends when nothing is.
@@ -158,12 +161,47 @@ export async function run(input: Input) {
         }
       }
       world.findings = findings.sort((a, b) => ORDER[a.status] - ORDER[b.status]);
+      email = await writeEmail(llm.generate, world, trace);
       break;
     }
   }
 
   trace.log('planner', 'done', { findings: world.findings.length, questions: world.questions.length });
-  return report(runId, world, trace, llm.name);
+  return { ...report(runId, world, trace, llm.name), email };
+}
+
+/** Email agent drafts, Risk guard checks; one retry with the reason, then the fixed template. */
+async function writeEmail(generate: Generate, world: WorldStore, trace: Trace): Promise<EmailDraft | undefined> {
+  const findings = emailFindings(world.findings);
+  if (!findings.length) return;
+  let feedback: string | undefined;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let draft;
+    try {
+      draft = await draftEmail(generate, world, findings, feedback);
+    } catch (e) {
+      feedback = `not valid JSON (${(e as Error).message})`;
+      trace.log('riskguard', `email draft rejected: ${feedback}`);
+      continue;
+    }
+    const v = reviewEmail(world, findings, draft);
+    if (v.ok) return done(draft, 'model');
+    feedback = v.reason;
+    trace.log('riskguard', `email draft rejected: ${v.reason}`, draft);
+  }
+  const t = templateDraft(world, findings);
+  const v = reviewEmail(world, findings, t);
+  if (!v.ok) {
+    trace.log('riskguard', `template rejected too (${v.reason}); no email`);
+    return;
+  }
+  trace.log('riskguard', 'email: using the fixed template');
+  return done(t, 'template');
+
+  function done(d: { subject: string; body: string }, via: EmailDraft['via']): EmailDraft {
+    trace.log('riskguard', `email draft approved (${via}); waiting for the renter`);
+    return { subject: d.subject, cited: d.body, body: stripCitations(d.body), covers: findings.map((f) => f.checkId), status: 'draft', requiresApproval: true, via };
+  }
 }
 
 function feasible(w: WorldStore, s: catastro.Strategy) {

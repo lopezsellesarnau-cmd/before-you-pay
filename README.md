@@ -58,6 +58,8 @@ cites a fact for everything it says.** The critic enforces that rule in code.
 | Checks | code | Size, use, fianza, additional guarantee, rent insurance, agency fees, IBI, price, listing vs contract. |
 | Critic | code | After every step: drops extractions whose quote is not in the document or does not contain the value; retries Catastro another way or asks the renter; rejects explanations that cite facts outside the evidence or use numbers not in it; flags cached sources and small samples. |
 | Explainer | LLM | Two plain sentences per finding, from the facts the ContextBuilder hands it. |
+| Email agent | LLM | Drafts a polite email in Spanish to the landlord or agency asking each red and amber question. Draft only: nothing is sent, the renter approves and sends it. |
+| Risk guard | code | Checks that draft: every red finding covered, citations and numbers from the evidence only, no accusations, threats or ultimatums, nothing that commits the renter, no phones, emails, IDs or IBANs. Retries the model with the reason, then falls back to fixed wording. |
 
 Everything lands in one **World Model**: facts with their source, quote and confidence.
 Each step is written to `logs/<run>.jsonl` and returned as `trace` in the report.

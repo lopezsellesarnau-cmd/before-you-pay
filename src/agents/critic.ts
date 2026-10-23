@@ -117,20 +117,27 @@ export function reviewExplanation(world: WorldStore, f: Finding, text: string): 
   const foreign = cited.filter((id) => !f.evidence.includes(id));
   if (foreign.length) return { ok: false, action: 'retry', reason: `cites facts outside the evidence: ${foreign.join(', ')}` };
 
-  const allowed = new Set<string>();
-  const harvest = (s: string) => [...s.replace(/(\d)[.,](?=\d{3}\b)/g, '$1').matchAll(/\d+(?:[.,]\d+)?/g)].forEach((m) => allowed.add(m[0].replace(',', '.')));
-  harvest(f.detail);
-  harvest(f.question ?? '');
-  for (const id of f.evidence) {
-    const fact = world.fact(id)!;
-    harvest(String(fact.value));
-    harvest(fact.attribute); // "p75" makes "75th percentile" legitimate
-    harvest(fact.quote ?? '');
-    harvest(world.sourceOf(fact).label);
-    harvest(world.sourceOf(fact).version ?? '');
-  }
-  const body = text.replace(/\[f\d+\]/g, '').replace(/(\d)[.,](?=\d{3}\b)/g, '$1');
-  const invented = [...body.matchAll(/\d+(?:[.,]\d+)?/g)].map((m) => m[0].replace(',', '.')).filter((n) => !allowed.has(n));
+  const invented = inventedNumbers(world, [f], text);
   if (invented.length) return { ok: false, action: 'retry', reason: `numbers not in the evidence: ${invented.join(', ')}` };
   return { ok: true };
+}
+
+/** Numbers in `text` that none of the findings (rule outcome, question, evidence) contains. */
+export function inventedNumbers(world: WorldStore, findings: Finding[], text: string): string[] {
+  const allowed = new Set<string>();
+  const harvest = (s: string) => [...s.replace(/(\d)[.,](?=\d{3}\b)/g, '$1').matchAll(/\d+(?:[.,]\d+)?/g)].forEach((m) => allowed.add(m[0].replace(',', '.')));
+  for (const f of findings) {
+    harvest(f.detail);
+    harvest(f.question ?? '');
+    for (const id of f.evidence) {
+      const fact = world.fact(id)!;
+      harvest(String(fact.value));
+      harvest(fact.attribute); // "p75" makes "75th percentile" legitimate
+      harvest(fact.quote ?? '');
+      harvest(world.sourceOf(fact).label);
+      harvest(world.sourceOf(fact).version ?? '');
+    }
+  }
+  const body = text.replace(/\[f\d+\]/g, '').replace(/(\d)[.,](?=\d{3}\b)/g, '$1');
+  return [...body.matchAll(/\d+(?:[.,]\d+)?/g)].map((m) => m[0].replace(',', '.')).filter((n) => !allowed.has(n));
 }

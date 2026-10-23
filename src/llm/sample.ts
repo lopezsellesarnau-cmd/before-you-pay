@@ -7,6 +7,7 @@ import type { GenerateRequest } from './provider.ts';
 
 export async function sampleGenerate(req: GenerateRequest): Promise<string> {
   if (req.task === 'extract') return JSON.stringify(extract(req.prompt.split('"""')[1] ?? ''));
+  if (req.task === 'email') return req.prompt.match(/^DRAFT:\n(.*)$/m)?.[1] ?? '{}';
   const outcome = req.prompt.match(/RULE OUTCOME: (.*)/)?.[1] ?? '';
   const ids = [...req.prompt.matchAll(/^\[(f\d+)\]/gm)].map((m) => m[1]);
   return `${outcome} ${ids.map((i) => `[${i}]`).join(' ')}`.trim();

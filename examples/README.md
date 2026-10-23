@@ -26,6 +26,7 @@ Shape:
 - `sources[]`: `label`, `url`, `version` (e.g. the BOE norm in force), `live` (false = saved copy).
 - `questions[]`: what the agent needs from the renter. `text`, `options`, `attribute` (send the answer back as `answers: { [attribute]: option }`).
 - `notes[]`: caveats from the critic or planner.
+- `email`: draft to the landlord or agency, in Spanish, only when there are red or amber findings. `subject`, `body` (ready to copy, no citations), `cited` (same text with `[fN]`), `covers` (check ids), `via` (`model` or `template`), `requiresApproval: true`. Nothing is ever sent: the renter edits it and sends it themselves. Risk guard rejections show up in `trace` (agent `riskguard`).
 - `trace[]`: each agent step in order (`agent`, `action`, `detail`), for the "how it reasoned" panel. Critic rejections show up here.
 
 To link a citation `[f12]` to its source: find `f12` in `facts`, then its `sourceId` in `sources`.

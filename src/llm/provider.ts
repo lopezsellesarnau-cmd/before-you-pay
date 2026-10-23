@@ -5,7 +5,7 @@
 
 export interface GenerateRequest {
   /** Which task this is, so the sample provider can answer without a model. */
-  task: 'extract' | 'explain';
+  task: 'extract' | 'explain' | 'email';
   system: string;
   prompt: string;
 }

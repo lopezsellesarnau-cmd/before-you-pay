@@ -28,6 +28,10 @@ export function toMarkdown(r: Report): string {
     for (const n of r.notes) out.push(`- (${n.agent}): ${n.text}`);
     out.push('');
   }
+  if (r.email) {
+    out.push('## Email draft (not sent)', '', 'Checked by the Risk guard. Review it and send it yourself.', '', `**Subject:** ${r.email.subject}`, '');
+    out.push(...r.email.body.split('\n').map((l) => (l ? `> ${l}` : '>')), '');
+  }
   out.push(`Trace: logs/${r.runId}.jsonl (${r.trace.length} steps)`);
   return out.join('\n');
 }

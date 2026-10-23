@@ -50,6 +50,7 @@ function render(r: Report) {
   }
   for (const q of r.questions) out.push(`? ${q.text}${q.options ? `\n  options: ${q.options.join(', ')}` : ''}\n  answer with: --answer ${q.attribute}="…"\n`);
   for (const n of r.notes) out.push(`note (${n.agent}): ${n.text}`);
+  if (r.email) out.push(`\nEMAIL DRAFT — not sent; review it and send it yourself\nSubject: ${r.email.subject}\n\n${r.email.body}\n`);
   out.push(`trace: logs/${r.runId}.jsonl (${r.trace.length} steps, provider ${r.provider})`);
   return out.join('\n');
 }

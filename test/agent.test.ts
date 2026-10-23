@@ -47,3 +47,11 @@ test('a listing without the door makes the agent ask instead of guessing', async
   const answered = await run({ listing: read('argumosa-3.listing.txt'), answers: { 'address.door': '3º C' } });
   assert.ok(answered.findings.find((f) => f.checkId === 'area'));
 });
+
+test('the report carries an email draft that waits for the renter', async () => {
+  const r = await run({ listing: read('argumosa-3c.listing.txt') });
+  assert.equal(r.email?.requiresApproval, true);
+  assert.deepEqual(r.email?.covers.sort(), ['agency_fees', 'area', 'deposit', 'price', 'rent_insurance', 'taxes']);
+  assert.doesNotMatch(r.email!.body, /\[f\d+\]/);
+  assert.match(r.email!.body, /1450 €/);
+});
