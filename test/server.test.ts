@@ -8,8 +8,12 @@ import type { Input } from '../src/agent.ts';
 async function withServer(
   action: (url: string) => Promise<void>,
   analyze: (input: Input) => Promise<unknown> = async (input) => ({ input }),
+  apiKey = 'test-api-key',
 ) {
-  const server = createApiServer(analyze);
+  const server = createApiServer(analyze, {
+    apiKey,
+    corsOrigin: 'https://juna.example',
+  });
 
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
 
@@ -29,7 +33,10 @@ test('POST /check returns the result from run()', async () => {
   await withServer(async (url) => {
     const response = await fetch(`${url}/check`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': 'test-api-key',
+      },
       body: JSON.stringify({ listing: 'Fictional listing text' }),
     });
 
@@ -44,7 +51,10 @@ test('POST /check rejects a request without a listing', async () => {
   await withServer(async (url) => {
     const response = await fetch(`${url}/check`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': 'test-api-key',
+      },
       body: JSON.stringify({}),
     });
 
@@ -62,7 +72,10 @@ test('POST /check extracts text from a PDF contract', async () => {
     async (url) => {
       const response = await fetch(`${url}/check`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': 'test-api-key',
+        },
         body: JSON.stringify({
           listing: 'Fictional listing text',
           contractPdfBase64: pdf.toString('base64'),
@@ -74,4 +87,65 @@ test('POST /check extracts text from a PDF contract', async () => {
       assert.match(result.input.contract, /Garantía adicional: 4 meses/);
     },
   );
+});
+
+test('OPTIONS /check returns CORS preflight headers', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/check`, { method: 'OPTIONS' });
+
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get('access-control-allow-origin'), 'https://juna.example');
+    assert.match(response.headers.get('access-control-allow-methods') ?? '', /POST/);
+    assert.match(response.headers.get('access-control-allow-headers') ?? '', /X-API-Key/i);
+  });
+});
+
+test('GET /health returns an unauthenticated health response', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/health`);
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { status: 'ok' });
+  });
+});
+
+test('POST /check requires the configured API key', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/check`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ listing: 'Fictional listing text' }),
+    });
+
+    assert.equal(response.status, 401);
+    assert.deepEqual(await response.json(), { error: 'Unauthorized.' });
+  });
+});
+
+test('POST /check returns 503 when no API key is configured', async () => {
+  await withServer(
+    async (url) => {
+      const response = await fetch(`${url}/check`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': 'test-api-key',
+        },
+        body: JSON.stringify({ listing: 'Fictional listing text' }),
+      });
+
+      assert.equal(response.status, 503);
+      assert.deepEqual(await response.json(), { error: 'API key is not configured.' });
+    },
+    undefined,
+    '',
+  );
+});
+
+test('GET /check returns method not allowed', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/check`);
+
+    assert.equal(response.status, 405);
+  });
 });

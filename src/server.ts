@@ -9,6 +9,10 @@ import { readDocument } from './sources/document.ts';
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 
 type Analyze = (input: Input) => Promise<unknown>;
+type ApiServerOptions = {
+  apiKey?: string;
+  corsOrigin?: string;
+};
 
 class HttpError extends Error {
   readonly status: number;
@@ -55,15 +59,49 @@ function isStringRecord(value: unknown): value is Record<string, string> {
   );
 }
 
-export function createApiServer(analyze: Analyze = run) {
+export function createApiServer(
+  analyze: Analyze = run,
+  options: ApiServerOptions = {},
+) {
+  const apiKey = options.apiKey ?? process.env.API_KEY;
+  const corsOrigin = options.corsOrigin ?? process.env.CORS_ORIGIN ?? '*';
+
   return createServer(async (req, res) => {
-    if (req.url !== '/check') {
+    res.setHeader('access-control-allow-origin', corsOrigin);
+    res.setHeader('access-control-allow-methods', 'GET, POST, OPTIONS');
+    res.setHeader('access-control-allow-headers', 'Content-Type, X-API-Key');
+    res.setHeader('vary', 'Origin');
+
+    const pathname = new URL(req.url ?? '/', 'http://localhost').pathname;
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    if (pathname === '/health' && req.method === 'GET') {
+      sendJson(res, 200, { status: 'ok' });
+      return;
+    }
+
+    if (pathname !== '/check') {
       sendJson(res, 404, { error: 'Not found.' });
       return;
     }
 
     if (req.method !== 'POST') {
       sendJson(res, 405, { error: 'Use POST /check.' });
+      return;
+    }
+
+    if (!apiKey) {
+      sendJson(res, 503, { error: 'API key is not configured.' });
+      return;
+    }
+
+    if (req.headers['x-api-key'] !== apiKey) {
+      sendJson(res, 401, { error: 'Unauthorized.' });
       return;
     }
 
@@ -144,6 +182,7 @@ export function createApiServer(analyze: Analyze = run) {
         return;
       }
 
+      console.error('POST /check failed:', error);
       sendJson(res, 500, { error: 'The check could not be completed.' });
     }
   });
