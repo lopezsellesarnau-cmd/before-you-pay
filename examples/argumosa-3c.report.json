@@ -1,12 +1,13 @@
 {
-  "runId": "2026-10-22T10-49-54-718Z-ee0a8e",
-  "createdAt": "2026-10-22T10:50:21.284Z",
+  "runId": "2026-10-23T08-19-35-420Z-2a1ef0",
+  "createdAt": "2026-10-23T08:19:56.234Z",
   "provider": "nvidia",
   "summary": {
     "red": 5,
     "amber": 1,
     "unknown": 0,
-    "green": 1
+    "green": 1,
+    "needsReview": 0
   },
   "findings": [
     {
@@ -16,10 +17,11 @@
       "detail": "Advertised 72 m², Catastro records 56 m² construidos: 29% more than on record.",
       "evidence": [
         "f10",
-        "f23"
+        "f27"
       ],
       "question": "Catastro has this flat at 56 m². Where do the other 16 m² come from, and are they legalised?",
-      "explanation": "The listing advertises 72 m² [f10], but Catastro records 56 m² construidos [f23], a difference of 29% more than on record."
+      "confidence": "high",
+      "explanation": "The listing advertises 72 m² [f10], but Catastro records 56 m² construidos [f27]. This is 29% more than the recorded size."
     },
     {
       "checkId": "deposit",
@@ -28,10 +30,11 @@
       "detail": "Asks for 2 months of fianza; the law sets 1 month for housing.",
       "evidence": [
         "f14",
-        "f33"
+        "f37"
       ],
       "question": "The legal fianza is 1 month of rent. Anything above that has to be an additional guarantee, capped too. Can you correct it?",
-      "explanation": "The listing requests a deposit of 2 months' rent [f14], but Spanish law limits the maximum deposit to 1 month for housing [f33]."
+      "confidence": "high",
+      "explanation": "The listing requests 2 months' deposit, but Spanish law (LAU art. 36) limits the maximum to 1 month for housing rentals. [f14] [f37]"
     },
     {
       "checkId": "rent_insurance",
@@ -40,10 +43,11 @@
       "detail": "Requires the tenant to take out rent default insurance (seguro de impago), which the law no longer allows.",
       "evidence": [
         "f18",
-        "f34"
+        "f38"
       ],
       "question": "The law does not allow requiring a seguro de impago from the tenant. Will you drop it?",
-      "explanation": "The listing requires rent default insurance [f18], but Spanish law (LAU art. 36) explicitly forbids demanding such insurance from the tenant [f34]."
+      "confidence": "high",
+      "explanation": "The listing requires rent default insurance [f18], but Spanish law explicitly forbids demanding this coverage from the tenant [f38]."
     },
     {
       "checkId": "agency_fees",
@@ -53,10 +57,11 @@
       "evidence": [
         "f16",
         "f17",
-        "f36"
+        "f40"
       ],
       "question": "Agency and contract fees cannot be passed on to the tenant. Will the landlord pay them?",
-      "explanation": "The listing charges the tenant 1,450 € in agency fees [f17], but Spanish law (LAU art. 20) forbids landlords from passing these costs to the tenant, even indirectly [f36]."
+      "confidence": "high",
+      "explanation": "The listing charges the tenant 1,450 € in agency fees [f17]. However, under current law, these fees cannot be passed to the tenant [f40]."
     },
     {
       "checkId": "taxes",
@@ -65,10 +70,11 @@
       "detail": "Passes IBI or other property taxes to the tenant, which the law no longer allows.",
       "evidence": [
         "f19",
-        "f37"
+        "f41"
       ],
       "question": "Property taxes such as IBI cannot be charged to the tenant. Can that clause go?",
-      "explanation": "The listing states that IBI tax is charged to the tenant [f19]. However, current law explicitly forbids passing property taxes like IBI to the tenant [f37]."
+      "confidence": "high",
+      "explanation": "The listing states the IBI tax is charged to the tenant [f19]. However, Spanish law now forbids passing property taxes like IBI to the tenant [f41]."
     },
     {
       "checkId": "price",
@@ -77,12 +83,13 @@
       "detail": "1450 € for 56 m² on record is 25.89 €/m²; in this area half of leases pay under 17.7 €/m² and three in four under 21.78 €/m².",
       "evidence": [
         "f13",
-        "f23",
-        "f40",
-        "f41"
+        "f27",
+        "f44",
+        "f45"
       ],
       "question": "The rent is above what three in four leases in the area pay per m². What justifies it?",
-      "explanation": "The listed rent of 1450 € for 56 m² works out to 25.89 €/m² [f13][f23]. In the reference area, half of leases pay under 17.7 €/m² [f40] and three in four pay under 21.78 €/m² [f41]."
+      "confidence": "high",
+      "explanation": "1450 € for 56 m² on record is 25.89 €/m²; in this area half of leases pay under 17.7 €/m² and three in four under 21.78 €/m²."
     },
     {
       "checkId": "use",
@@ -90,9 +97,10 @@
       "title": "Registered as a dwelling",
       "detail": "Catastro registers the unit as Residencial.",
       "evidence": [
-        "f24"
+        "f28"
       ],
-      "explanation": "The Catastro records the unit as Residencial, which confirms it is registered as a dwelling. [f24]"
+      "confidence": "high",
+      "explanation": "The Catastro registers the unit as Residencial, confirming it is registered as a dwelling. [f28]"
     }
   ],
   "questions": [],
@@ -158,71 +166,71 @@
       "attribute": "unit.area_m2",
       "value": 56,
       "unit": "m² construidos",
-      "sourceId": "src_catastro_21",
+      "sourceId": "src_catastro_25",
       "confidence": "high",
-      "id": "f23"
+      "id": "f27"
     },
     {
       "attribute": "unit.use",
       "value": "Residencial",
-      "sourceId": "src_catastro_21",
+      "sourceId": "src_catastro_25",
       "confidence": "high",
-      "id": "f24"
+      "id": "f28"
     },
     {
       "attribute": "law.max_deposit_months",
       "value": 1,
-      "sourceId": "src_boe_32",
+      "sourceId": "src_boe_36",
       "quote": "A la celebración del contrato será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas y de dos en el arrendamiento para uso distinto del de vivienda.",
       "confidence": "high",
-      "id": "f33"
+      "id": "f37"
     },
     {
       "attribute": "law.rent_insurance_forbidden",
       "value": true,
-      "sourceId": "src_boe_32",
+      "sourceId": "src_boe_36",
       "quote": "En ningún caso podrá exigirse al arrendatario la contratación de seguros de impago de renta u otras coberturas análogas.",
       "confidence": "high",
-      "id": "f34"
+      "id": "f38"
     },
     {
       "attribute": "law.agency_fees_forbidden",
       "value": true,
-      "sourceId": "src_boe_35",
+      "sourceId": "src_boe_39",
       "quote": "Los gastos de gestión inmobiliaria y de formalización del contrato no podrán ser repercutidos al arrendatario, ni directa ni indirectamente, bajo ningún concepto o denominación.",
       "confidence": "high",
-      "id": "f36"
+      "id": "f40"
     },
     {
       "attribute": "law.taxes_to_tenant_forbidden",
       "value": true,
-      "sourceId": "src_boe_35",
+      "sourceId": "src_boe_39",
       "quote": "En ningún caso podrán imponerse los tributos asociados a la vivienda a la parte arrendataria, excepto en los supuestos en los que dicha parte tenga la condición de obligado tributario.",
       "confidence": "high",
-      "id": "f37"
+      "id": "f41"
     },
     {
       "attribute": "ref.eur_m2_p50",
       "value": 17.7,
       "unit": "€/m²/month",
-      "sourceId": "src_serpavi_38",
+      "sourceId": "src_serpavi_42",
       "confidence": "high",
-      "id": "f40"
+      "id": "f44"
     },
     {
       "attribute": "ref.eur_m2_p75",
       "value": 21.78,
       "unit": "€/m²/month",
-      "sourceId": "src_serpavi_38",
+      "sourceId": "src_serpavi_42",
       "confidence": "high",
-      "id": "f41"
+      "id": "f45"
     }
   ],
   "sources": [
     {
       "kind": "listing",
       "label": "Listing",
-      "retrievedAt": "2026-10-22T10:49:54.720Z",
+      "retrievedAt": "2026-10-23T08:19:35.422Z",
       "live": true,
       "id": "src_listing_1"
     },
@@ -230,41 +238,41 @@
       "kind": "catastro",
       "label": "Catastro, ref. 0835114VK4703F0022QQ",
       "url": "https://www1.sedecatastro.gob.es/CYCBienInmueble/OVCConCiud.aspx?RefC=0835114VK4703F0022QQ",
-      "retrievedAt": "2026-10-22T10:50:01.784Z",
+      "retrievedAt": "2026-10-23T08:19:42.542Z",
       "live": true,
-      "id": "src_catastro_21"
+      "id": "src_catastro_25"
     },
     {
       "kind": "boe",
       "label": "LAU art. 36",
       "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a36",
       "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
-      "retrievedAt": "2026-10-22T10:50:01.970Z",
+      "retrievedAt": "2026-10-23T08:19:42.662Z",
       "live": true,
-      "id": "src_boe_32"
+      "id": "src_boe_36"
     },
     {
       "kind": "boe",
       "label": "LAU art. 20",
       "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a20",
       "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
-      "retrievedAt": "2026-10-22T10:50:02.068Z",
+      "retrievedAt": "2026-10-23T08:19:42.706Z",
       "live": true,
-      "id": "src_boe_35"
+      "id": "src_boe_39"
     },
     {
       "kind": "serpavi",
       "label": "SERPAVI 2024, Madrid census district 01",
       "url": "https://www.mivau.gob.es/vivienda/alquila-bien-es-tu-derecho/serpavi",
       "version": "dataset 2011-2024, via zetaris",
-      "retrievedAt": "2026-10-22T10:50:04.154Z",
+      "retrievedAt": "2026-10-23T08:19:43.842Z",
       "live": true,
-      "id": "src_serpavi_38"
+      "id": "src_serpavi_42"
     }
   ],
   "trace": [
     {
-      "t": "2026-10-22T10:49:54.720Z",
+      "t": "2026-10-23T08:19:35.421Z",
       "step": 1,
       "agent": "planner",
       "action": "start",
@@ -274,7 +282,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:49:54.720Z",
+      "t": "2026-10-23T08:19:35.422Z",
       "step": 2,
       "agent": "planner",
       "action": "next: extract",
@@ -284,10 +292,10 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:00.211Z",
+      "t": "2026-10-23T08:19:40.527Z",
       "step": 3,
       "agent": "extractor",
-      "action": "19 fields from listing",
+      "action": "23 fields from listing",
       "detail": [
         {
           "attribute": "address.street_type",
@@ -383,21 +391,45 @@
           "attribute": "terms.rental_type",
           "value": "habitual",
           "quote": "Contrato de vivienda habitual"
+        },
+        {
+          "attribute": "terms.pay_before_visit",
+          "value": false,
+          "quote": null
+        },
+        {
+          "attribute": "terms.payment_method",
+          "value": null,
+          "quote": null
+        },
+        {
+          "attribute": "terms.no_visit",
+          "value": false,
+          "quote": null
+        },
+        {
+          "attribute": "landlord.abroad",
+          "value": false,
+          "quote": null
         }
       ]
     },
     {
-      "t": "2026-10-22T10:50:00.213Z",
+      "t": "2026-10-23T08:19:40.528Z",
       "step": 4,
       "agent": "critic",
-      "action": "extraction: kept 17, dropped 2",
+      "action": "extraction: kept 17, dropped 6",
       "detail": [
         "unit.catastro_ref (no quote)",
-        "terms.extra_guarantee_months (no quote)"
+        "terms.extra_guarantee_months (no quote)",
+        "terms.pay_before_visit (no quote)",
+        "terms.payment_method (no quote)",
+        "terms.no_visit (no quote)",
+        "landlord.abroad (no quote)"
       ]
     },
     {
-      "t": "2026-10-22T10:50:00.213Z",
+      "t": "2026-10-23T08:19:40.528Z",
       "step": 5,
       "agent": "planner",
       "action": "next: catastro",
@@ -407,7 +439,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:01.789Z",
+      "t": "2026-10-23T08:19:42.547Z",
       "step": 6,
       "agent": "catastro",
       "action": "address: 32 units, 1 match",
@@ -417,13 +449,13 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:01.789Z",
+      "t": "2026-10-23T08:19:42.548Z",
       "step": 7,
       "agent": "critic",
       "action": "catastro: one unit identified"
     },
     {
-      "t": "2026-10-22T10:50:01.790Z",
+      "t": "2026-10-23T08:19:42.549Z",
       "step": 8,
       "agent": "planner",
       "action": "next: law",
@@ -438,7 +470,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:02.076Z",
+      "t": "2026-10-23T08:19:42.711Z",
       "step": 9,
       "agent": "law",
       "action": "fetched 4 rules from the BOE",
@@ -447,7 +479,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:02.094Z",
+      "t": "2026-10-23T08:19:42.723Z",
       "step": 10,
       "agent": "planner",
       "action": "next: price",
@@ -456,7 +488,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:04.154Z",
+      "t": "2026-10-23T08:19:43.842Z",
       "step": 11,
       "agent": "price",
       "action": "SERPAVI 2024 distrito_censal 2807901 via zetaris",
@@ -474,13 +506,13 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:04.154Z",
+      "t": "2026-10-23T08:19:43.842Z",
       "step": 12,
       "agent": "critic",
       "action": "price: Catastro municipal district matched to SERPAVI census district (same in Madrid; check elsewhere)"
     },
     {
-      "t": "2026-10-22T10:50:04.155Z",
+      "t": "2026-10-23T08:19:43.842Z",
       "step": 13,
       "agent": "planner",
       "action": "next: check",
@@ -489,7 +521,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:04.155Z",
+      "t": "2026-10-23T08:19:43.844Z",
       "step": 14,
       "agent": "checks",
       "action": "7 findings",
@@ -504,15 +536,41 @@
       ]
     },
     {
-      "t": "2026-10-22T10:50:04.919Z",
+      "t": "2026-10-23T08:19:44.846Z",
       "step": 15,
       "agent": "critic",
       "action": "explanation of area rejected: cites no evidence",
-      "detail": "The listing advertises 72 m², but Catastro records show 56 m² construidos [f10, f23]. This represents a 29% discrepancy between the advertised size and the official records."
+      "detail": "The advertised size is 72 m², while Catastro records 56 m² construidos [f10, f27]. This represents a 29% increase over the recorded size."
     },
     {
-      "t": "2026-10-22T10:50:21.283Z",
+      "t": "2026-10-23T08:19:50.627Z",
       "step": 16,
+      "agent": "critic",
+      "action": "explanation of price rejected: cites no evidence",
+      "detail": "The listed rent of 1450 € for 56 m² works out to 25.89 €/m². In this area, half of leases pay under 17.7 €/m² and three in four under 21.78 €/m²."
+    },
+    {
+      "t": "2026-10-23T08:19:53.066Z",
+      "step": 17,
+      "agent": "critic",
+      "action": "explanation of price rejected: numbers not in the evidence: 13, 27",
+      "detail": "The listed rent is 25.89 €/m² [f13, f27], which is higher than the area median of 17.7 €/m² [f44] and the 75th percentile of 21.78 €/m² [f45], meaning most local leases are cheaper."
+    },
+    {
+      "t": "2026-10-23T08:19:53.069Z",
+      "step": 18,
+      "agent": "critic",
+      "action": "explanation of price: using the rule outcome"
+    },
+    {
+      "t": "2026-10-23T08:19:56.232Z",
+      "step": 19,
+      "agent": "riskguard",
+      "action": "email draft approved (model); waiting for the renter"
+    },
+    {
+      "t": "2026-10-23T08:19:56.234Z",
+      "step": 20,
       "agent": "planner",
       "action": "done",
       "detail": {
@@ -520,5 +578,21 @@
         "questions": 0
       }
     }
-  ]
+  ],
+  "email": {
+    "subject": "Consultas sobre el piso antes de reservar",
+    "cited": "Hola,\n\nMe interesa el piso y, antes de pagar ninguna reserva ni fianza, me gustaría aclarar algunos puntos:\n\nEl anuncio indica 72 m², pero el Catastro registra 56 m² para esta vivienda. ¿De dónde sale la diferencia y está legalizada? [f10] [f27]\n\nSe piden 2 meses de fianza, y la ley fija 1 mes para vivienda. ¿Pueden ajustarla? [f14] [f37]\n\nSe pide contratar un seguro de impago. La ley ya no permite exigírselo al inquilino; ¿pueden retirar ese requisito? [f18] [f38]\n\nSe cobran al inquilino honorarios de agencia de 1450 €. La ley establece que corren a cargo del propietario; ¿pueden confirmarlo? [f16] [f17] [f40]\n\nSe repercute al inquilino el IBI u otros impuestos de la vivienda. La ley ya no lo permite; ¿pueden quitar esa condición? [f19] [f41]\n\nLa renta está por encima de lo que pagan tres de cada cuatro alquileres de la zona según el índice estatal de referencia (SERPAVI). ¿Habría margen para revisarla? [f13] [f27] [f44] [f45]\n\nMuchas gracias, quedo a la espera de su respuesta.\n\n[Tu nombre]",
+    "body": "Hola,\n\nMe interesa el piso y, antes de pagar ninguna reserva ni fianza, me gustaría aclarar algunos puntos:\n\nEl anuncio indica 72 m², pero el Catastro registra 56 m² para esta vivienda. ¿De dónde sale la diferencia y está legalizada?\n\nSe piden 2 meses de fianza, y la ley fija 1 mes para vivienda. ¿Pueden ajustarla?\n\nSe pide contratar un seguro de impago. La ley ya no permite exigírselo al inquilino; ¿pueden retirar ese requisito?\n\nSe cobran al inquilino honorarios de agencia de 1450 €. La ley establece que corren a cargo del propietario; ¿pueden confirmarlo?\n\nSe repercute al inquilino el IBI u otros impuestos de la vivienda. La ley ya no lo permite; ¿pueden quitar esa condición?\n\nLa renta está por encima de lo que pagan tres de cada cuatro alquileres de la zona según el índice estatal de referencia (SERPAVI). ¿Habría margen para revisarla?\n\nMuchas gracias, quedo a la espera de su respuesta.\n\n[Tu nombre]",
+    "covers": [
+      "area",
+      "deposit",
+      "rent_insurance",
+      "agency_fees",
+      "taxes",
+      "price"
+    ],
+    "status": "draft",
+    "requiresApproval": true,
+    "via": "model"
+  }
 }

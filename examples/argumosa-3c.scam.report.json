@@ -1,0 +1,505 @@
+{
+  "runId": "2026-10-23T08-19-56-344Z-94fd2a",
+  "createdAt": "2026-10-23T08:20:19.637Z",
+  "provider": "nvidia",
+  "summary": {
+    "red": 1,
+    "amber": 0,
+    "unknown": 0,
+    "green": 4,
+    "needsReview": 0
+  },
+  "findings": [
+    {
+      "checkId": "scam",
+      "status": "red",
+      "title": "Signs of a rental scam",
+      "detail": "Matches common rental scam patterns: money is asked for before visiting or signing; the flat cannot be visited or the keys come by post; payment by western union, which cannot be traced or reversed; the landlord says they are abroad; 9.82 €/m², well under the 14 €/m² that the cheapest quarter of leases in the area pay.",
+      "evidence": [
+        "f20",
+        "f22",
+        "f21",
+        "f23",
+        "f12",
+        "f38",
+        "f26"
+      ],
+      "question": "Can I see the flat and sign the contract in person before paying anything, and pay into an account in the owner's name?",
+      "confidence": "high",
+      "explanation": "The listing asks for payment before any visit [f20][f22], and the landlord claims to be abroad [f23], which are common scam patterns. The rent of 550 €/month for 56 m² works out to about 9.82 €/m², well below the 14 €/m² that the cheapest quarter of local leases pay [f38], another red flag."
+    },
+    {
+      "checkId": "area",
+      "status": "green",
+      "title": "Advertised size vs Catastro",
+      "detail": "Advertised 56 m², Catastro records 56 m² construidos.",
+      "evidence": [
+        "f9",
+        "f26"
+      ],
+      "confidence": "high",
+      "explanation": "The advertised size of 56 m² matches the Catastro records of 56 m² construidos [f9][f26]."
+    },
+    {
+      "checkId": "use",
+      "status": "green",
+      "title": "Registered as a dwelling",
+      "detail": "Catastro registers the unit as Residencial.",
+      "evidence": [
+        "f27"
+      ],
+      "confidence": "high",
+      "explanation": "The Catastro records the unit as Residencial, confirming it is registered as a dwelling. [f27]"
+    },
+    {
+      "checkId": "deposit",
+      "status": "green",
+      "title": "Fianza (deposit)",
+      "detail": "Fianza of 1 month, as the law sets.",
+      "evidence": [
+        "f13",
+        "f36"
+      ],
+      "confidence": "high",
+      "explanation": "The listing specifies a deposit of 1 month's rent [f13]. Spanish law (LAU art. 36) sets the maximum deposit at 1 month for residential rentals [f36]."
+    },
+    {
+      "checkId": "price",
+      "status": "green",
+      "title": "Rent vs what people pay nearby",
+      "detail": "550 € for 56 m² on record is 9.82 €/m²; in this area half of leases pay under 17.7 €/m² and three in four under 21.78 €/m².",
+      "evidence": [
+        "f12",
+        "f26",
+        "f39",
+        "f40"
+      ],
+      "confidence": "high",
+      "explanation": "The listed rent of 550 € for 56 m² works out to 9.82 €/m² [f12][f26]. This is below the area median of 17.7 €/m² [f39] and the 75th percentile of 21.78 €/m² [f40], indicating the rent is low compared to nearby leases."
+    }
+  ],
+  "questions": [],
+  "notes": [],
+  "facts": [
+    {
+      "attribute": "unit.area_m2",
+      "value": 56,
+      "sourceId": "src_listing_1",
+      "quote": "56 m2 construidos",
+      "confidence": "high",
+      "id": "f9"
+    },
+    {
+      "attribute": "terms.rent_eur",
+      "value": 550,
+      "sourceId": "src_listing_1",
+      "quote": "550 €/mes",
+      "confidence": "high",
+      "id": "f12"
+    },
+    {
+      "attribute": "terms.deposit_months",
+      "value": 1,
+      "sourceId": "src_listing_1",
+      "quote": "fianza de 1 mes",
+      "confidence": "high",
+      "id": "f13"
+    },
+    {
+      "attribute": "terms.pay_before_visit",
+      "value": true,
+      "sourceId": "src_listing_1",
+      "quote": "Para reservarlo hay que pagar la fianza de 1 mes antes de la visita",
+      "confidence": "high",
+      "id": "f20"
+    },
+    {
+      "attribute": "terms.payment_method",
+      "value": "western_union",
+      "sourceId": "src_listing_1",
+      "quote": "El pago se hace por Western Union a mi nombre",
+      "confidence": "high",
+      "id": "f21"
+    },
+    {
+      "attribute": "terms.no_visit",
+      "value": true,
+      "sourceId": "src_listing_1",
+      "quote": "no es posible hacer visitas",
+      "confidence": "high",
+      "id": "f22"
+    },
+    {
+      "attribute": "landlord.abroad",
+      "value": true,
+      "sourceId": "src_listing_1",
+      "quote": "vivo en Londres por trabajo y por eso no es posible hacer visitas",
+      "confidence": "high",
+      "id": "f23"
+    },
+    {
+      "attribute": "unit.area_m2",
+      "value": 56,
+      "unit": "m² construidos",
+      "sourceId": "src_catastro_24",
+      "confidence": "high",
+      "id": "f26"
+    },
+    {
+      "attribute": "unit.use",
+      "value": "Residencial",
+      "sourceId": "src_catastro_24",
+      "confidence": "high",
+      "id": "f27"
+    },
+    {
+      "attribute": "law.max_deposit_months",
+      "value": 1,
+      "sourceId": "src_boe_35",
+      "quote": "A la celebración del contrato será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas y de dos en el arrendamiento para uso distinto del de vivienda.",
+      "confidence": "high",
+      "id": "f36"
+    },
+    {
+      "attribute": "ref.eur_m2_p25",
+      "value": 14,
+      "unit": "€/m²/month",
+      "sourceId": "src_serpavi_37",
+      "confidence": "high",
+      "id": "f38"
+    },
+    {
+      "attribute": "ref.eur_m2_p50",
+      "value": 17.7,
+      "unit": "€/m²/month",
+      "sourceId": "src_serpavi_37",
+      "confidence": "high",
+      "id": "f39"
+    },
+    {
+      "attribute": "ref.eur_m2_p75",
+      "value": 21.78,
+      "unit": "€/m²/month",
+      "sourceId": "src_serpavi_37",
+      "confidence": "high",
+      "id": "f40"
+    }
+  ],
+  "sources": [
+    {
+      "kind": "listing",
+      "label": "Listing",
+      "retrievedAt": "2026-10-23T08:19:56.345Z",
+      "live": true,
+      "id": "src_listing_1"
+    },
+    {
+      "kind": "catastro",
+      "label": "Catastro, ref. 0835114VK4703F0022QQ",
+      "url": "https://www1.sedecatastro.gob.es/CYCBienInmueble/OVCConCiud.aspx?RefC=0835114VK4703F0022QQ",
+      "retrievedAt": "2026-10-23T08:20:07.002Z",
+      "live": true,
+      "id": "src_catastro_24"
+    },
+    {
+      "kind": "boe",
+      "label": "LAU art. 36",
+      "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a36",
+      "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
+      "retrievedAt": "2026-10-23T08:20:07.244Z",
+      "live": true,
+      "id": "src_boe_35"
+    },
+    {
+      "kind": "serpavi",
+      "label": "SERPAVI 2024, Madrid census district 01",
+      "url": "https://www.mivau.gob.es/vivienda/alquila-bien-es-tu-derecho/serpavi",
+      "version": "dataset 2011-2024, via zetaris",
+      "retrievedAt": "2026-10-23T08:20:08.320Z",
+      "live": true,
+      "id": "src_serpavi_37"
+    }
+  ],
+  "trace": [
+    {
+      "t": "2026-10-23T08:19:56.345Z",
+      "step": 1,
+      "agent": "planner",
+      "action": "start",
+      "detail": {
+        "provider": "nvidia",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b"
+      }
+    },
+    {
+      "t": "2026-10-23T08:19:56.345Z",
+      "step": 2,
+      "agent": "planner",
+      "action": "next: extract",
+      "detail": {
+        "kind": "extract",
+        "doc": "listing"
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:04.622Z",
+      "step": 3,
+      "agent": "extractor",
+      "action": "22 fields from listing",
+      "detail": [
+        {
+          "attribute": "address.street_type",
+          "value": "CL",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.street",
+          "value": "ARGUMOSA",
+          "quote": "Calle Argumosa"
+        },
+        {
+          "attribute": "address.number",
+          "value": "11",
+          "quote": "Argumosa 11"
+        },
+        {
+          "attribute": "address.floor",
+          "value": "3",
+          "quote": "3º"
+        },
+        {
+          "attribute": "address.door",
+          "value": "C",
+          "quote": "3º C"
+        },
+        {
+          "attribute": "address.municipality",
+          "value": "Madrid",
+          "quote": "Madrid"
+        },
+        {
+          "attribute": "address.province",
+          "value": "Madrid",
+          "quote": "Madrid"
+        },
+        {
+          "attribute": "unit.area_m2",
+          "value": 56,
+          "quote": "56 m2 construidos"
+        },
+        {
+          "attribute": "unit.area_kind",
+          "value": "construidos",
+          "quote": "56 m2 construidos"
+        },
+        {
+          "attribute": "unit.bedrooms",
+          "value": 2,
+          "quote": "2 dormitorios"
+        },
+        {
+          "attribute": "terms.rent_eur",
+          "value": 550,
+          "quote": "550 €/mes"
+        },
+        {
+          "attribute": "terms.deposit_months",
+          "value": 1,
+          "quote": "fianza de 1 mes"
+        },
+        {
+          "attribute": "terms.extra_guarantee_months",
+          "value": 0,
+          "quote": null
+        },
+        {
+          "attribute": "terms.agency_fee_to_tenant",
+          "value": false,
+          "quote": null
+        },
+        {
+          "attribute": "terms.agency_fee_eur",
+          "value": 0,
+          "quote": null
+        },
+        {
+          "attribute": "terms.rent_insurance_required",
+          "value": false,
+          "quote": null
+        },
+        {
+          "attribute": "terms.taxes_to_tenant",
+          "value": false,
+          "quote": null
+        },
+        {
+          "attribute": "terms.rental_type",
+          "value": "habitual",
+          "quote": "Contrato de vivienda habitual"
+        },
+        {
+          "attribute": "terms.pay_before_visit",
+          "value": true,
+          "quote": "Para reservarlo hay que pagar la fianza de 1 mes antes de la visita"
+        },
+        {
+          "attribute": "terms.payment_method",
+          "value": "western_union",
+          "quote": "El pago se hace por Western Union a mi nombre"
+        },
+        {
+          "attribute": "terms.no_visit",
+          "value": true,
+          "quote": "no es posible hacer visitas"
+        },
+        {
+          "attribute": "landlord.abroad",
+          "value": true,
+          "quote": "vivo en Londres por trabajo y por eso no es posible hacer visitas"
+        }
+      ]
+    },
+    {
+      "t": "2026-10-23T08:20:04.625Z",
+      "step": 4,
+      "agent": "critic",
+      "action": "extraction: kept 17, dropped 5",
+      "detail": [
+        "terms.extra_guarantee_months (no quote)",
+        "terms.agency_fee_to_tenant (no quote)",
+        "terms.agency_fee_eur (no quote)",
+        "terms.rent_insurance_required (no quote)",
+        "terms.taxes_to_tenant (no quote)"
+      ]
+    },
+    {
+      "t": "2026-10-23T08:20:04.625Z",
+      "step": 5,
+      "agent": "planner",
+      "action": "next: catastro",
+      "detail": {
+        "kind": "catastro",
+        "strategy": "address"
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:07.006Z",
+      "step": 6,
+      "agent": "catastro",
+      "action": "address: 32 units, 1 match",
+      "detail": {
+        "url": "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/Consulta_DNPLOC?Provincia=MADRID&Municipio=MADRID&Sigla=CL&Calle=ARGUMOSA&Numero=11",
+        "live": true
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:07.007Z",
+      "step": 7,
+      "agent": "critic",
+      "action": "catastro: one unit identified"
+    },
+    {
+      "t": "2026-10-23T08:20:07.008Z",
+      "step": 8,
+      "agent": "planner",
+      "action": "next: law",
+      "detail": {
+        "kind": "law",
+        "attributes": [
+          "law.max_deposit_months"
+        ]
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:07.251Z",
+      "step": 9,
+      "agent": "law",
+      "action": "fetched 1 rules from the BOE",
+      "detail": {
+        "missing": []
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:07.252Z",
+      "step": 10,
+      "agent": "planner",
+      "action": "next: price",
+      "detail": {
+        "kind": "price"
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:08.320Z",
+      "step": 11,
+      "agent": "price",
+      "action": "SERPAVI 2024 distrito_censal 2807901 via zetaris",
+      "detail": {
+        "areaCode": "2807901",
+        "level": "distrito_censal",
+        "areaName": "Madrid",
+        "year": 2024,
+        "dwelling": "colectiva",
+        "p25": 14,
+        "p50": 17.7,
+        "p75": 21.78,
+        "sampleN": 20518,
+        "via": "zetaris"
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:08.320Z",
+      "step": 12,
+      "agent": "critic",
+      "action": "price: Catastro municipal district matched to SERPAVI census district (same in Madrid; check elsewhere)"
+    },
+    {
+      "t": "2026-10-23T08:20:08.320Z",
+      "step": 13,
+      "agent": "planner",
+      "action": "next: check",
+      "detail": {
+        "kind": "check"
+      }
+    },
+    {
+      "t": "2026-10-23T08:20:08.333Z",
+      "step": 14,
+      "agent": "checks",
+      "action": "5 findings",
+      "detail": [
+        "area:green",
+        "use:green",
+        "deposit:green",
+        "price:green",
+        "scam:red"
+      ]
+    },
+    {
+      "t": "2026-10-23T08:20:19.635Z",
+      "step": 15,
+      "agent": "riskguard",
+      "action": "email draft approved (model); waiting for the renter"
+    },
+    {
+      "t": "2026-10-23T08:20:19.637Z",
+      "step": 16,
+      "agent": "planner",
+      "action": "done",
+      "detail": {
+        "findings": 5,
+        "questions": 0
+      }
+    }
+  ],
+  "email": {
+    "subject": "Consultas sobre el piso antes de reservar",
+    "cited": "Hola,\n\nMe interesa el piso y, antes de pagar ninguna reserva ni fianza, me gustaría aclarar algunos puntos:\n\nAntes de hacer ningún pago, me gustaría visitar el piso y firmar el contrato en persona, y que los pagos vayan a una cuenta a nombre del propietario. ¿Es posible? [f20] [f22] [f21] [f23] [f12] [f38] [f26]\n\nMuchas gracias, quedo a la espera de su respuesta.\n\n[Tu nombre]",
+    "body": "Hola,\n\nMe interesa el piso y, antes de pagar ninguna reserva ni fianza, me gustaría aclarar algunos puntos:\n\nAntes de hacer ningún pago, me gustaría visitar el piso y firmar el contrato en persona, y que los pagos vayan a una cuenta a nombre del propietario. ¿Es posible?\n\nMuchas gracias, quedo a la espera de su respuesta.\n\n[Tu nombre]",
+    "covers": [
+      "scam"
+    ],
+    "status": "draft",
+    "requiresApproval": true,
+    "via": "model"
+  }
+}

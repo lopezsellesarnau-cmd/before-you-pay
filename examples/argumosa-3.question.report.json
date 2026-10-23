@@ -1,12 +1,13 @@
 {
-  "runId": "2026-10-22T10-50-21-566Z-3670dd",
-  "createdAt": "2026-10-22T10:50:29.221Z",
+  "runId": "2026-10-23T08-18-41-452Z-2a307f",
+  "createdAt": "2026-10-23T08:18:48.061Z",
   "provider": "nvidia",
   "summary": {
     "red": 0,
     "amber": 0,
     "unknown": 0,
-    "green": 1
+    "green": 1,
+    "needsReview": 0
   },
   "findings": [
     {
@@ -18,7 +19,8 @@
         "f10",
         "f15"
       ],
-      "explanation": "The listing specifies a deposit of 1 month's rent [f10]. Spanish law (LAU art. 36) sets the maximum deposit at 1 month for residential rentals [f15]."
+      "confidence": "high",
+      "explanation": "The listing specifies a deposit of 1 month [f10]. Spanish law (LAU art. 36) sets the maximum deposit at 1 month for residential rentals [f15]."
     }
   ],
   "questions": [
@@ -61,7 +63,7 @@
     {
       "kind": "listing",
       "label": "Listing",
-      "retrievedAt": "2026-10-22T10:50:21.567Z",
+      "retrievedAt": "2026-10-23T08:18:41.453Z",
       "live": true,
       "id": "src_listing_1"
     },
@@ -70,14 +72,14 @@
       "label": "LAU art. 36",
       "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a36",
       "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
-      "retrievedAt": "2026-10-22T10:50:28.628Z",
+      "retrievedAt": "2026-10-23T08:18:47.371Z",
       "live": true,
       "id": "src_boe_14"
     }
   ],
   "trace": [
     {
-      "t": "2026-10-22T10:50:21.567Z",
+      "t": "2026-10-23T08:18:41.453Z",
       "step": 1,
       "agent": "planner",
       "action": "start",
@@ -87,7 +89,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:21.567Z",
+      "t": "2026-10-23T08:18:41.453Z",
       "step": 2,
       "agent": "planner",
       "action": "next: extract",
@@ -97,7 +99,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:26.454Z",
+      "t": "2026-10-23T08:18:45.617Z",
       "step": 3,
       "agent": "extractor",
       "action": "11 fields from listing",
@@ -119,7 +121,7 @@
         },
         {
           "attribute": "address.floor",
-          "value": "3",
+          "value": 3,
           "quote": "3º"
         },
         {
@@ -160,14 +162,14 @@
       ]
     },
     {
-      "t": "2026-10-22T10:50:26.454Z",
+      "t": "2026-10-23T08:18:45.618Z",
       "step": 4,
       "agent": "critic",
       "action": "extraction: kept 11, dropped 0",
       "detail": []
     },
     {
-      "t": "2026-10-22T10:50:26.471Z",
+      "t": "2026-10-23T08:18:45.618Z",
       "step": 5,
       "agent": "planner",
       "action": "next: catastro",
@@ -177,7 +179,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:28.523Z",
+      "t": "2026-10-23T08:18:47.234Z",
       "step": 6,
       "agent": "catastro",
       "action": "address: 32 units, 7 match",
@@ -187,13 +189,13 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:28.524Z",
+      "t": "2026-10-23T08:18:47.235Z",
       "step": 7,
       "agent": "critic",
       "action": "catastro: ask — 7 candidate units, listing does not say which"
     },
     {
-      "t": "2026-10-22T10:50:28.525Z",
+      "t": "2026-10-23T08:18:47.235Z",
       "step": 8,
       "agent": "planner",
       "action": "next: law",
@@ -205,7 +207,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:28.634Z",
+      "t": "2026-10-23T08:18:47.385Z",
       "step": 9,
       "agent": "law",
       "action": "fetched 1 rules from the BOE",
@@ -214,7 +216,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:28.634Z",
+      "t": "2026-10-23T08:18:47.385Z",
       "step": 10,
       "agent": "planner",
       "action": "next: check",
@@ -223,7 +225,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:28.635Z",
+      "t": "2026-10-23T08:18:47.386Z",
       "step": 11,
       "agent": "checks",
       "action": "1 findings",
@@ -232,7 +234,7 @@
       ]
     },
     {
-      "t": "2026-10-22T10:50:29.220Z",
+      "t": "2026-10-23T08:18:48.060Z",
       "step": 12,
       "agent": "planner",
       "action": "done",

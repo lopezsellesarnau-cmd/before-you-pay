@@ -1,12 +1,13 @@
 {
-  "runId": "2026-10-22T10-50-29-488Z-e79091",
-  "createdAt": "2026-10-22T10:50:42.679Z",
+  "runId": "2026-10-23T08-18-48-191Z-3c60e1",
+  "createdAt": "2026-10-23T08:19:02.711Z",
   "provider": "nvidia",
   "summary": {
     "red": 0,
     "amber": 0,
     "unknown": 0,
-    "green": 4
+    "green": 4,
+    "needsReview": 0
   },
   "findings": [
     {
@@ -18,6 +19,7 @@
         "f10",
         "f18"
       ],
+      "confidence": "high",
       "explanation": "The advertised size is 60 m² [f10], while Catastro records 56 m² construidos [f18]."
     },
     {
@@ -28,7 +30,8 @@
       "evidence": [
         "f19"
       ],
-      "explanation": "The Catastro records the unit as Residencial, confirming it is registered as a dwelling. [f19]"
+      "confidence": "high",
+      "explanation": "The Catastro registers the unit as Residencial [f19]."
     },
     {
       "checkId": "deposit",
@@ -39,7 +42,8 @@
         "f13",
         "f28"
       ],
-      "explanation": "The listing specifies a deposit of 1 month [f13]. Spanish law (LAU art. 36) sets the maximum deposit at 1 month for residential rentals [f28]."
+      "confidence": "high",
+      "explanation": "The listing specifies a deposit of 1 month's rent [f13]. Spanish law (LAU art. 36) sets the maximum deposit at 1 month for residential rentals [f28]."
     },
     {
       "checkId": "price",
@@ -52,7 +56,8 @@
         "f31",
         "f32"
       ],
-      "explanation": "The listing rent of 1200 € for 56 m² works out to 21.43 €/m². [f12][f18] This is above the area median of 17.7 €/m² and the 75th percentile of 21.78 €/m². [f31][f32]"
+      "confidence": "high",
+      "explanation": "The listing's rate of 21.43 €/m² is above the area median of 17.7 €/m² and below the 75th percentile of 21.78 €/m², indicating it is priced higher than half but lower than most local leases. [f12] [f18] [f31] [f32]"
     }
   ],
   "questions": [],
@@ -126,14 +131,14 @@
     {
       "kind": "listing",
       "label": "Listing",
-      "retrievedAt": "2026-10-22T10:50:29.490Z",
+      "retrievedAt": "2026-10-23T08:18:48.193Z",
       "live": true,
       "id": "src_listing_1"
     },
     {
       "kind": "renter",
       "label": "Your answer",
-      "retrievedAt": "2026-10-22T10:50:29.491Z",
+      "retrievedAt": "2026-10-23T08:18:48.193Z",
       "live": true,
       "id": "src_renter_2"
     },
@@ -141,7 +146,7 @@
       "kind": "catastro",
       "label": "Catastro, ref. 0835114VK4703F0022QQ",
       "url": "https://www1.sedecatastro.gob.es/CYCBienInmueble/OVCConCiud.aspx?RefC=0835114VK4703F0022QQ",
-      "retrievedAt": "2026-10-22T10:50:38.734Z",
+      "retrievedAt": "2026-10-23T08:18:54.399Z",
       "live": true,
       "id": "src_catastro_16"
     },
@@ -150,7 +155,7 @@
       "label": "LAU art. 36",
       "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a36",
       "version": "in force since 2026-10-08 (BOE-A-2026-20823)",
-      "retrievedAt": "2026-10-22T10:50:38.858Z",
+      "retrievedAt": "2026-10-23T08:18:54.498Z",
       "live": true,
       "id": "src_boe_27"
     },
@@ -159,14 +164,14 @@
       "label": "SERPAVI 2024, Madrid census district 01",
       "url": "https://www.mivau.gob.es/vivienda/alquila-bien-es-tu-derecho/serpavi",
       "version": "dataset 2011-2024, via zetaris",
-      "retrievedAt": "2026-10-22T10:50:39.874Z",
+      "retrievedAt": "2026-10-23T08:18:57.339Z",
       "live": true,
       "id": "src_serpavi_29"
     }
   ],
   "trace": [
     {
-      "t": "2026-10-22T10:50:29.490Z",
+      "t": "2026-10-23T08:18:48.193Z",
       "step": 1,
       "agent": "planner",
       "action": "start",
@@ -176,7 +181,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:29.491Z",
+      "t": "2026-10-23T08:18:48.193Z",
       "step": 2,
       "agent": "planner",
       "action": "next: extract",
@@ -186,7 +191,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:33.768Z",
+      "t": "2026-10-23T08:18:52.711Z",
       "step": 3,
       "agent": "extractor",
       "action": "11 fields from listing",
@@ -249,14 +254,14 @@
       ]
     },
     {
-      "t": "2026-10-22T10:50:33.769Z",
+      "t": "2026-10-23T08:18:52.712Z",
       "step": 4,
       "agent": "critic",
       "action": "extraction: kept 11, dropped 0",
       "detail": []
     },
     {
-      "t": "2026-10-22T10:50:33.770Z",
+      "t": "2026-10-23T08:18:52.712Z",
       "step": 5,
       "agent": "planner",
       "action": "next: catastro",
@@ -266,7 +271,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:38.738Z",
+      "t": "2026-10-23T08:18:54.402Z",
       "step": 6,
       "agent": "catastro",
       "action": "address: 32 units, 1 match",
@@ -276,13 +281,13 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:38.739Z",
+      "t": "2026-10-23T08:18:54.403Z",
       "step": 7,
       "agent": "critic",
       "action": "catastro: one unit identified"
     },
     {
-      "t": "2026-10-22T10:50:38.740Z",
+      "t": "2026-10-23T08:18:54.404Z",
       "step": 8,
       "agent": "planner",
       "action": "next: law",
@@ -294,7 +299,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:38.868Z",
+      "t": "2026-10-23T08:18:54.517Z",
       "step": 9,
       "agent": "law",
       "action": "fetched 1 rules from the BOE",
@@ -303,7 +308,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:38.868Z",
+      "t": "2026-10-23T08:18:54.517Z",
       "step": 10,
       "agent": "planner",
       "action": "next: price",
@@ -312,7 +317,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:39.874Z",
+      "t": "2026-10-23T08:18:57.339Z",
       "step": 11,
       "agent": "price",
       "action": "SERPAVI 2024 distrito_censal 2807901 via zetaris",
@@ -330,13 +335,13 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:39.876Z",
+      "t": "2026-10-23T08:18:57.340Z",
       "step": 12,
       "agent": "critic",
       "action": "price: Catastro municipal district matched to SERPAVI census district (same in Madrid; check elsewhere)"
     },
     {
-      "t": "2026-10-22T10:50:39.876Z",
+      "t": "2026-10-23T08:18:57.340Z",
       "step": 13,
       "agent": "planner",
       "action": "next: check",
@@ -345,7 +350,7 @@
       }
     },
     {
-      "t": "2026-10-22T10:50:39.892Z",
+      "t": "2026-10-23T08:18:57.353Z",
       "step": 14,
       "agent": "checks",
       "action": "4 findings",
@@ -357,8 +362,15 @@
       ]
     },
     {
-      "t": "2026-10-22T10:50:42.677Z",
+      "t": "2026-10-23T08:18:59.521Z",
       "step": 15,
+      "agent": "critic",
+      "action": "explanation of area rejected: cites no evidence",
+      "detail": "The advertised size is 60 m², while Catastro records 56 m² construidos [f10, f18]. This 4 m² difference falls within typical variation, resulting in a green verdict."
+    },
+    {
+      "t": "2026-10-23T08:19:02.709Z",
+      "step": 16,
       "agent": "planner",
       "action": "done",
       "detail": {

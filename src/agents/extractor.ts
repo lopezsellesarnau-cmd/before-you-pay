@@ -48,12 +48,20 @@ export async function extract(generate: Generate, kind: Source['kind'], text: st
   const fields = Object.entries(FIELDS)
     .map(([k, v]) => `- ${k}: ${v}`)
     .join('\n');
-  const out = await generate({
-    task: 'extract',
-    system: SYSTEM,
-    prompt: `Document type: ${kind}\n\nFields:\n${fields}\n\nDocument:\n"""\n${text}\n"""`,
-  });
-  return parseJson<Extracted[]>(out).filter((e) => e.attribute in FIELDS);
+  const prompt = `Document type: ${kind}\n\nFields:\n${fields}\n\nDocument:\n"""\n${text}\n"""`;
+  // Models sometimes return broken JSON; say what was wrong and ask again.
+  let error = '';
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const out = await generate({ task: 'extract', system: SYSTEM, prompt: prompt + error });
+    try {
+      const items = parseJson<Extracted[]>(out);
+      if (!Array.isArray(items)) throw new Error('not an array');
+      return items.filter((e) => e && e.attribute in FIELDS);
+    } catch (e) {
+      error = `\n\nYour previous answer was not valid JSON (${(e as Error).message}). Return only the JSON array.`;
+    }
+  }
+  throw new Error(`extractor: no valid JSON after 3 attempts${error}`);
 }
 
 /** Store the extraction. Validation of each quote is the critic's job. */

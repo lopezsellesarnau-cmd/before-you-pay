@@ -73,7 +73,13 @@ export async function run(input: Input) {
     if (task.kind === 'extract') {
       state.extracted.add(task.doc);
       const src = docSources.get(task.doc)!;
-      const items = await extract(llm.generate, task.doc, input[task.doc]!);
+      let items: Awaited<ReturnType<typeof extract>> = [];
+      try {
+        items = await extract(llm.generate, task.doc, input[task.doc]!);
+      } catch (e) {
+        trace.log('extractor', `${task.doc}: failed`, String(e));
+        world.note('extractor', `Could not read the ${task.doc}; its checks are missing. Try again.`);
+      }
       ingestExtraction(world, src.id, items);
       trace.log('extractor', `${items.length} fields from ${task.doc}`, items);
       const r = reviewExtraction(world, src.id, input[task.doc]!);

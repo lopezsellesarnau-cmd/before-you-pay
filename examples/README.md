@@ -16,9 +16,10 @@ Real outputs (Nemotron + live Catastro/BOE + SERPAVI via Zetaris), made with `--
 
 | File | Screen state |
 |---|---|
-| `argumosa-3c.report.json` | Full report: 5 red, 1 amber, 1 ok |
+| `argumosa-3c.report.json` | Full report: 5 red, 1 amber, 1 ok, plus the email draft. The critic rejects two price explanations (see `trace`) |
 | `argumosa-3.question.report.json` | The agent asks which flat (7 options) before checking size and price |
 | `argumosa-3.answered.report.json` | Same listing after answering `3º C` |
+| `argumosa-3c.scam.report.json` | Scam signals: one red finding, the email only asks to visit and sign before paying |
 
 Shape:
 
