@@ -23,6 +23,10 @@ const TOPIC: Record<string, RegExp> = {
   'terms.taxes_to_tenant': /ibi|impuesto|tributo|tasa/i,
   'terms.rent_eur': /€|eur|precio|renta|alquiler|mes/i,
   'unit.area_m2': /m2|m²|metros/i,
+  'terms.pay_before_visit': /pag|transfer|reserv|señal|ingres/i,
+  'terms.payment_method': /western|moneygram|cripto|bitcoin|tarjeta|transferencia|bizum|efectivo|pago/i,
+  'terms.no_visit': /visit|llave|enseñ/i,
+  'landlord.abroad': /extranjero|fuera de|vivo|resido|trabajo en/i,
 };
 
 /** Every extracted value must be backed by a verbatim quote that contains it. */

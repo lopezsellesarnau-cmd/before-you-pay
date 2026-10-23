@@ -10,6 +10,7 @@ const SYSTEM = `You explain one check of a rental listing to a renter in Spain.
 Write at most two short sentences in plain ${process.env.REPORT_LANG === 'es' ? 'Spanish' : 'English'}.
 Use only the FACTS given. Cite every fact you use by its id in brackets, like [f3].
 Do not introduce any number that is not in the facts or the rule outcome.
+Percentiles are not minimums or maximums: p25 means a quarter of leases pay less, p75 that three in four do.
 Do not give legal advice and do not tell them to sign or not sign; say what the records or the law show.`;
 
 export async function explain(generate: Generate, world: WorldStore, f: Finding, feedback?: string): Promise<string> {

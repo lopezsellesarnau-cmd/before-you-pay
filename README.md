@@ -55,7 +55,7 @@ cites a fact for everything it says.** The critic enforces that rule in code.
 | Catastro | code | Finds the registered unit (reference → address → normalised address → coordinates). |
 | Law | code | Fetches the LAU articles in force today from the BOE API. Each rule is bound to a sentence that must exist word for word in that version. |
 | Price | code | SERPAVI reference rents through **Zetaris**; local CSV if Zetaris does not answer. |
-| Checks | code | Size, use, fianza, additional guarantee, rent insurance, agency fees, IBI, price, listing vs contract. |
+| Checks | code | Size, use, fianza, additional guarantee, rent insurance, agency fees, IBI, price, listing vs contract, scam signals (money before the visit, no visit or keys by courier, Western Union or crypto, landlord abroad, rent far under the area's cheapest quarter). |
 | Critic | code | After every step: drops extractions whose quote is not in the document or does not contain the value; retries Catastro another way or asks the renter; rejects explanations that cite facts outside the evidence or use numbers not in it; flags cached sources and small samples. Rates each finding's confidence from its evidence (saved copies, old copies, small SERPAVI samples, listing and contract disagreeing on the figure used) and sends low ones to human review: flagged in the report, kept out of the email. |
 | Explainer | LLM | Two plain sentences per finding, from the facts the ContextBuilder hands it. |
 | Email agent | LLM | Drafts a polite email in Spanish to the landlord or agency asking each red and amber question. Draft only: nothing is sent, the renter approves and sends it. |

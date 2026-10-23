@@ -17,6 +17,10 @@ const STREET_TYPES: Record<string, string> = {
   calle: 'CL', c: 'CL', avenida: 'AV', avda: 'AV', plaza: 'PZ', pza: 'PZ', paseo: 'PS', ronda: 'RD', travesia: 'TR', travesía: 'TR',
 };
 
+const PAYMENT: Record<string, string> = {
+  western: 'western_union', moneygram: 'moneygram', bitcoin: 'crypto', cripto: 'crypto', tarjeta: 'gift_card', tarjetas: 'gift_card', transferencia: 'transfer_abroad', efectivo: 'cash',
+};
+
 function num(s: string) {
   return Number(s.replace(/\./g, '').replace(',', '.'));
 }
@@ -53,5 +57,9 @@ function extract(text: string) {
   add('terms.rent_insurance_required', /seguro de impago[^.\n]{0,40}(?:obligatorio|imprescindible|requerido|necesario)|(?:obligatorio|imprescindible)[^.\n]{0,40}seguro de impago/i, () => true);
   add('terms.taxes_to_tenant', /IBI[^.\n]{0,40}(?:inquilino|arrendatario)/i, () => true);
   add('terms.rental_type', /\b(temporada|temporal)\b/i, () => 'temporada');
+  add('terms.pay_before_visit', /[^.\n]*(?:pag|transfer|reserv|señal|ingres)[^.\n]*antes de (?:la )?(?:visita|verlo|ver el piso|visitar|firmar)[^.\n]*/i, () => true);
+  add('terms.payment_method', /[^.\n]*\b(western union|moneygram|bitcoin|cripto\w*|tarjetas? regalo|transferencia internacional|efectivo)\b[^.\n]*/i, (m) => PAYMENT[m[1].toLowerCase().split(' ')[0].replace(/^cripto.*/, 'cripto')] ?? 'bank_transfer');
+  add('terms.no_visit', /[^.\n]*(?:no (?:es posible|se puede|puedo) (?:hacer )?(?:visitas?|enseñ)|llaves[^.\n]{0,40}(?:correo|mensajer[ií]a))[^.\n]*/i, () => true);
+  add('landlord.abroad', /[^.\n]*\b(?:vivo|resido|trabajo)\b[^.\n]{0,30}(?:extranjero|fuera de España|Londres|Reino Unido|Francia|Alemania|Irlanda|Italia|Estados Unidos)[^.\n]*/i, () => true);
   return out;
 }

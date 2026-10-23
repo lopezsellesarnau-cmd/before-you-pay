@@ -94,3 +94,9 @@ test('risk guard: the template passes; threats, invented figures, commitments an
   assert.match((bad('Llámame al 612 345 678.') as any).reason, /phone/);
   assert.match((reviewEmail(w, [f], { subject: 'Piso', body: 'Hola, ¿podemos hablar?' }) as any).reason, /leaves out red findings: deposit/);
 });
+
+test('extraction: a payment method quoted from a sentence about something else is dropped', () => {
+  const { w, src } = world();
+  w.addFact({ attribute: 'terms.payment_method', value: 'western_union', quote: 'Fianza: 2 meses', sourceId: src.id, confidence: 'medium' });
+  assert.match(reviewExtraction(w, src.id, listing).dropped[0], /about something else/);
+});

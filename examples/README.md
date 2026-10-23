@@ -7,6 +7,8 @@ the listing text, prices and conditions are invented. No personal data.
 |---|---|
 | `argumosa-3c.listing.txt` | Size inflated vs Catastro, double fianza, agency fees, rent insurance, IBI to tenant |
 | `argumosa-3.listing.txt` | Listing omits the door: the agent asks which flat before checking the size |
+| `argumosa-3c.scam.listing.txt` | Scam pattern: pay before the visit, Western Union, keys by courier, landlord abroad, 550 € for 56 m² |
+| `contract-*.pdf` | Fictitious contracts (abusive clauses, excessive guarantee, contradicts the listing), for `--contract` |
 
 ## Report JSON (for the UI)
 

@@ -58,6 +58,8 @@ export function point(world: WorldStore, f: Finding): string {
         return 'Se repercute al inquilino el IBI u otros impuestos de la vivienda. La ley ya no lo permite; ¿pueden quitar esa condición?';
       case 'price':
         return 'La renta está por encima de lo que pagan tres de cada cuatro alquileres de la zona según el índice estatal de referencia (SERPAVI). ¿Habría margen para revisarla?';
+      case 'scam':
+        return 'Antes de hacer ningún pago, me gustaría visitar el piso y firmar el contrato en persona, y que los pagos vayan a una cuenta a nombre del propietario. ¿Es posible?'
       case 'consistency':
         return 'El anuncio y el contrato no coinciden en algunas condiciones. ¿Pueden confirmar cuáles son las definitivas?';
       default:

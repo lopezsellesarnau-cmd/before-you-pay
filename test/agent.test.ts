@@ -81,3 +81,13 @@ test('saved copies lower confidence; old ones send the finding to review', async
     process.env.CACHE_MAX_AGE_DAYS = '100000';
   }
 });
+
+test('a scam listing is flagged red with each signal cited', async () => {
+  const r = await run({ listing: read('argumosa-3c.scam.listing.txt') });
+  const scam = r.findings.find((f) => f.checkId === 'scam')!;
+  assert.equal(scam.status, 'red');
+  for (const s of [/before visiting/, /cannot be visited/, /western union/, /abroad/, /9.82 €\/m²/]) assert.match(scam.detail, s);
+  const attrs = r.facts.filter((f) => scam.evidence.includes(f.id)).map((f) => f.attribute);
+  for (const a of ['terms.pay_before_visit', 'terms.no_visit', 'terms.payment_method', 'landlord.abroad', 'ref.eur_m2_p25']) assert.ok(attrs.includes(a), a);
+  assert.deepEqual(r.email?.covers, ['scam']);
+});

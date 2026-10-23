@@ -24,6 +24,11 @@ const ids = (...fs: (Fact | undefined)[]) => fs.filter((f): f is Fact => !!f).ma
 const AREA_AMBER = 1.1;
 const AREA_RED = 1.2;
 
+// Payment channels that cannot be traced to a person or reversed once sent.
+const UNTRACEABLE = ['western_union', 'moneygram', 'crypto', 'gift_card', 'transfer_abroad'];
+// A rent below 75% of the area's p25 per m² is too good to be true on its own.
+const TOO_CHEAP = 0.75;
+
 export const CHECKS: Check[] = [
   {
     id: 'area',
@@ -203,6 +208,48 @@ export const CHECKS: Check[] = [
         detail: `${eur(Number(rent.value))} for ${area.value} m²${onRecord ? ' on record' : ''} is ${perM2} €/m²; in this area half of leases pay under ${p50.value} €/m² and three in four under ${p75.value} €/m².`,
         evidence: ids(rent, area, p50, p75),
         question: above ? `The rent is above what three in four leases in the area pay per m². What justifies it?` : undefined,
+      };
+    },
+  },
+  {
+    id: 'scam',
+    title: 'Signs of a rental scam',
+    law: [],
+    run(w) {
+      const strong: [Fact | undefined, string][] = [];
+      const weak: [Fact | undefined, string][] = [];
+      const yes = (attr: string) => {
+        const f = w.get(attr, [...DOCS]);
+        return f?.value === true ? f : undefined;
+      };
+      const before = yes('terms.pay_before_visit');
+      if (before) strong.push([before, 'money is asked for before visiting or signing']);
+      const noVisit = yes('terms.no_visit');
+      if (noVisit) strong.push([noVisit, 'the flat cannot be visited or the keys come by post']);
+      const method = w.get('terms.payment_method', [...DOCS]);
+      if (method && UNTRACEABLE.includes(String(method.value))) strong.push([method, `payment by ${String(method.value).replace(/_/g, ' ')}, which cannot be traced or reversed`]);
+      if (method?.value === 'cash') weak.push([method, 'payment in cash']);
+      const abroad = yes('landlord.abroad');
+      if (abroad) weak.push([abroad, 'the landlord says they are abroad']);
+
+      // Far below the cheapest quarter of real leases nearby, on the size on record.
+      const rent = w.get('terms.rent_eur', [...DOCS]);
+      const p25 = w.get('ref.eur_m2_p25');
+      const area = w.get('unit.area_m2', ['catastro']);
+      if (rent && p25 && area) {
+        const perM2 = Math.round((Number(rent.value) / Number(area.value)) * 100) / 100;
+        if (perM2 < Number(p25.value) * TOO_CHEAP) weak.push([rent, `${perM2} €/m², well under the ${p25.value} €/m² that the cheapest quarter of leases in the area pay`], [p25, ''], [area, '']);
+      }
+
+      const signs = [...strong, ...weak].filter(([, why]) => why).map(([, why]) => why);
+      if (!signs.length) return;
+      return {
+        checkId: 'scam',
+        status: strong.length ? 'red' : 'amber',
+        title: this.title,
+        detail: `Matches common rental scam patterns: ${signs.join('; ')}.`,
+        evidence: ids(...[...strong, ...weak].map(([f]) => f)),
+        question: 'Can I see the flat and sign the contract in person before paying anything, and pay into an account in the owner\'s name?',
       };
     },
   },

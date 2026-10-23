@@ -26,6 +26,10 @@ export const FIELDS: Record<string, string> = {
   'terms.rent_insurance_required': 'true if the tenant must take out rent default insurance (seguro de impago)',
   'terms.taxes_to_tenant': 'true if IBI or other property taxes are charged to the tenant',
   'terms.rental_type': '"habitual" or "temporada"',
+  'terms.pay_before_visit': 'true if money (reserva, señal, fianza) is asked for before visiting the flat or signing',
+  'terms.payment_method': 'how payment is asked for: "western_union", "moneygram", "crypto", "gift_card", "transfer_abroad", "cash", "bizum" or "bank_transfer"',
+  'terms.no_visit': 'true if the flat cannot be visited, or the keys are sent by post or courier',
+  'landlord.abroad': 'true if the landlord says they live abroad or cannot meet in person',
 };
 
 export interface Extracted {
