@@ -10,7 +10,8 @@
   "scripts": {
     "check": "node --env-file-if-exists=.env src/cli.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/*.test.ts"
+    "test": "node --test test/*.test.ts",
+    "start": "node src/server.ts"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
