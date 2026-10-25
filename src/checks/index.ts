@@ -229,6 +229,16 @@ export const CHECKS: Check[] = [
       const method = w.get('terms.payment_method', [...DOCS]);
       if (method && UNTRACEABLE.includes(String(method.value))) strong.push([method, `payment by ${String(method.value).replace(/_/g, ' ')}, which cannot be traced or reversed`]);
       if (method?.value === 'cash') weak.push([method, 'payment in cash']);
+      // Photos found by Google Lens (Bright Data) on pages where this flat should not be.
+      const web = (attr: string) => w.all(attr, ['web']).find((f) => f.value === true);
+      const stock = web('photos.on_stock_or_holiday_site');
+      if (stock) strong.push([stock, 'the photos also appear on a stock-photo or holiday-rental site']);
+      const otherCity = web('photos.on_listing_in_other_city');
+      if (otherCity) strong.push([otherCity, 'the photos also appear on a listing in another city']);
+      const reused = w.all('photos.reused_on_sites', ['web']).sort((a, b) => Number(b.value) - Number(a.value))[0];
+      if (reused) strong.push([reused, `the same photo appears on ${reused.value} different websites`]);
+      const portal = web('photos.on_other_portal');
+      if (portal) weak.push([portal, 'the photos also appear on another rental portal']);
       const abroad = yes('landlord.abroad');
       if (abroad) weak.push([abroad, 'the landlord says they are abroad']);
 

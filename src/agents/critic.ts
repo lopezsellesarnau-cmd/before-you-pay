@@ -164,7 +164,7 @@ export function assessConfidence(world: WorldStore, f: Finding, now = Date.now()
 
   for (const fact of facts) {
     const s = world.sourceOf(fact);
-    if (!s.live && ['catastro', 'boe', 'serpavi'].includes(s.kind)) {
+    if (!s.live && ['catastro', 'boe', 'serpavi', 'web'].includes(s.kind)) {
       const age = Math.floor((now - Date.parse(s.retrievedAt)) / DAY);
       if (age > Number(process.env.CACHE_MAX_AGE_DAYS ?? 30)) lower('low', `${s.label} comes from a copy saved ${age} days ago; it may have changed.`);
       else lower('medium', `${s.label} comes from a saved copy, not a live answer.`);

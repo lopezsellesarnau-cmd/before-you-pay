@@ -137,6 +137,17 @@ export function createApiServer(
         throw new HttpError(400, 'answers must be an object of string values.');
       }
 
+      if (
+        data.photos !== undefined &&
+        !(
+          Array.isArray(data.photos) &&
+          data.photos.length <= 5 &&
+          data.photos.every((url) => typeof url === 'string' && /^https?:\/\//.test(url))
+        )
+      ) {
+        throw new HttpError(400, 'photos must be an array of up to 5 http(s) URLs.');
+      }
+
       let contract = data.contract as string | undefined;
 
       if (typeof data.contractPdfBase64 === 'string') {
@@ -173,6 +184,7 @@ export function createApiServer(
         ...(data.answers === undefined
           ? {}
           : { answers: data.answers as Record<string, string> }),
+        ...(data.photos === undefined ? {} : { photos: data.photos as string[] }),
       };
 
       sendJson(res, 200, await analyze(input));

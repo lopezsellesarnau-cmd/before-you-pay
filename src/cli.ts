@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util';
 import { run, type Report } from './agent.ts';
 import { toMarkdown } from './render/markdown.ts';
 import { readDocument } from './sources/document.ts';
-// node src/cli.ts examples/argumosa-3c.listing.txt [--contract file] [--answer address.door=C] [--json out.json] [--markdown out.md]
+// node src/cli.ts examples/argumosa-3c.listing.txt [--contract file] [--answer address.door=C] [--photo url] [--json out.json] [--markdown out.md]
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -12,6 +12,7 @@ const { values, positionals } = parseArgs({
     answer: { type: 'string', multiple: true },
     lat: { type: 'string' },
     lon: { type: 'string' },
+    photo: { type: 'string', multiple: true },
     json: { type: 'string' },
     markdown: { type: 'string' },
   },
@@ -29,6 +30,7 @@ const report = await run({
   answers,
   lat: values.lat ? Number(values.lat) : undefined,
   lon: values.lon ? Number(values.lon) : undefined,
+  photos: values.photo,
 });
 
 if (values.json) writeFileSync(values.json, JSON.stringify(report, null, 2));

@@ -38,7 +38,7 @@ export class WorldStore {
 
   /** Best fact for an attribute: renter answers win, then contract, then listing, then records. */
   get(attribute: string, kinds?: Source['kind'][]): Fact | undefined {
-    const rank: Record<Source['kind'], number> = { renter: 0, contract: 1, listing: 2, catastro: 3, serpavi: 3, boe: 3 };
+    const rank: Record<Source['kind'], number> = { renter: 0, contract: 1, listing: 2, catastro: 3, serpavi: 3, boe: 3, web: 3 };
     return this.all(attribute, kinds).sort(
       (a, b) => rank[this.sources.get(a.sourceId)!.kind] - rank[this.sources.get(b.sourceId)!.kind],
     )[0];

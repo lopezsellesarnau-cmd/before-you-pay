@@ -38,6 +38,7 @@ npm run check -- examples/argumosa-3c.listing.txt  # live Catastro + BOE
 npm run check -- examples/argumosa-3.listing.txt   # asks which flat
 npm run check -- examples/argumosa-3.listing.txt --answer 'address.door=3º C'
 npm run check -- examples/argumosa-3c.scam.listing.txt                     # scam signals
+npm run check -- examples/argumosa-3c.scam.listing.txt --photo 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200'   # + photo on 69 other pages (Bright Data)
 npm run check -- examples/argumosa-3c.listing.txt --contract examples/contract-contradicts-listing.pdf
 OFFLINE=1 npm run check -- examples/argumosa-3c.listing.txt   # saved copies only
 ```
@@ -60,6 +61,7 @@ cites a fact for everything it says.** The critic enforces that rule in code.
 | Catastro | code | Finds the registered unit (reference → address → normalised address → coordinates). |
 | Law | code | Fetches the LAU articles in force today from the BOE API. Each rule is bound to a sentence that must exist word for word in that version. |
 | Price | code | SERPAVI reference rents through **Zetaris**; local CSV if Zetaris does not answer. |
+| Photos | code | Each listing photo through Google Lens (**Bright Data** SERP API): pages where the same image appears. Stock-photo or holiday-rental sites, or a listing in another city, feed the scam check. |
 | Checks | code | Size, use, fianza, additional guarantee, rent insurance, agency fees, IBI, price, listing vs contract, scam signals (money before the visit, no visit or keys by courier, Western Union or crypto, landlord abroad, rent far under the area's cheapest quarter). |
 | Critic | code | After every step: drops extractions whose quote is not in the document or does not contain the value; retries Catastro another way or asks the renter; rejects explanations that cite facts outside the evidence or use numbers not in it; flags cached sources and small samples. Rates each finding's confidence from its evidence (saved copies, old copies, small SERPAVI samples, listing and contract disagreeing on the figure used) and sends low ones to human review: flagged in the report, kept out of the email. |
 | Explainer | LLM | Two plain sentences per finding, from the facts the ContextBuilder hands it. |
@@ -119,6 +121,11 @@ and evidence is written as JSONL to `logs/`.
 **Cursor (required).** The project lives in Cursor: Claude Code runs in Cursor's terminal for
 most of the code, and Cursor's own agent built the Markdown export (`src/render/markdown.ts`
 and its test, commit `0b05161`).
+
+**Bright Data (optional).** The photos specialist (`src/agents/photos.ts`,
+`src/sources/brightdata.ts`) sends each listing photo to Google Lens through the Bright Data
+SERP API and records the pages where the same image appears. Set `BRIGHTDATA_API_TOKEN` and
+`BRIGHTDATA_SERP_ZONE`; pass photos with `--photo <url>` or `photos: [...]` in `POST /check`.
 
 **NVIDIA (optional).** NVIDIA Nemotron on NIM is the model of the demo
 (`LLM_PROVIDER=nvidia`, default `nvidia/nemotron-3.5-lightning-30b-a3b`): extraction with

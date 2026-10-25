@@ -5,9 +5,11 @@ import { draftEmail, emailFindings, stripCitations, templateDraft, type EmailDra
 import { explain } from './agents/explainer.ts';
 import { extract, ingestExtraction } from './agents/extractor.ts';
 import { fetchLaw } from './agents/law.ts';
+import { ingestPhotos } from './agents/photos.ts';
 import { lookupReference } from './agents/price.ts';
 import { reviewEmail } from './agents/riskguard.ts';
 import { CHECKS } from './checks/index.ts';
+import { brightdataConfigured, lens, type LensResult } from './sources/brightdata.ts';
 import { provider, type Generate } from './llm/provider.ts';
 import { Trace } from './log.ts';
 import { WorldStore } from './world/store.ts';
@@ -20,6 +22,8 @@ export interface Input {
   answers?: Record<string, string>;
   lat?: number;
   lon?: number;
+  /** Listing photo URLs, checked with Google Lens through Bright Data. */
+  photos?: string[];
 }
 
 type Task =
@@ -27,6 +31,7 @@ type Task =
   | { kind: 'catastro'; strategy: catastro.Strategy }
   | { kind: 'law'; attributes: string[] }
   | { kind: 'price' }
+  | { kind: 'photos' }
   | { kind: 'check' };
 
 const STRATEGIES: catastro.Strategy[] = ['reference', 'address', 'address-normalised', 'coordinates'];
@@ -46,7 +51,7 @@ export async function run(input: Input) {
   ingestAnswers(world, input);
 
   let email: EmailDraft | undefined;
-  const state = { extracted: new Set<string>(), tried: new Set<catastro.Strategy>(), catastroSettled: false, lawTried: new Set<string>(), priceTried: false };
+  const state = { extracted: new Set<string>(), tried: new Set<catastro.Strategy>(), catastroSettled: false, lawTried: new Set<string>(), priceTried: false, photosTried: false };
 
   // Planner: look at the world, pick what is still worth doing. Ends when nothing is.
   const plan = (): Task | undefined => {
@@ -63,6 +68,7 @@ export async function run(input: Input) {
       .filter((a) => !world.has(a) && !state.lawTried.has(a));
     if (needed.length) return { kind: 'law', attributes: [...new Set(needed)] };
     if (!state.priceTried && world.has('unit.ine_municipality', ['catastro']) && world.has('terms.rent_eur')) return { kind: 'price' };
+    if (!state.photosTried && input.photos?.length) return { kind: 'photos' };
     return { kind: 'check' };
   };
 
@@ -132,6 +138,27 @@ export async function run(input: Input) {
         if (r.fellBack) world.note('critic', 'No SERPAVI figure for the district; compared with the whole municipality.');
         if (r.ref.level === 'distrito_censal') trace.log('critic', 'price: Catastro municipal district matched to SERPAVI census district (same in Madrid; check elsewhere)');
         if (r.ref.sampleN < 30) world.note('critic', `SERPAVI figure rests on only ${r.ref.sampleN} leases; treat it as indicative.`);
+      }
+    }
+
+    if (task.kind === 'photos') {
+      state.photosTried = true;
+      if (!brightdataConfigured() && process.env.OFFLINE !== '1') {
+        trace.log('photos', 'Bright Data not configured; photos not checked');
+        world.note('photos', 'Photos were not checked: Bright Data is not configured.');
+      } else {
+        const results: LensResult[] = [];
+        for (const url of input.photos!.slice(0, 5)) {
+          try {
+            const r = await lens(url);
+            results.push(r);
+            trace.log('photos', `Lens: ${r.matches.length} pages with this photo`, { url, live: r.live, domains: [...new Set(r.matches.map((m) => m.domain))].slice(0, 10) });
+          } catch (e) {
+            trace.log('photos', 'Lens failed', { url, error: String(e) });
+          }
+        }
+        ingestPhotos(world, results);
+        if (results.length < input.photos!.length) world.note('photos', `Checked ${results.length} of ${input.photos!.length} photos.`);
       }
     }
 

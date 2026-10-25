@@ -1,7 +1,7 @@
 // The shared world state every agent reads from and writes to.
 // Meterless engine: World Model (WorldStore + IngestPipeline + ContextBuilder).
 
-export type SourceKind = 'listing' | 'contract' | 'catastro' | 'serpavi' | 'boe' | 'renter';
+export type SourceKind = 'listing' | 'contract' | 'catastro' | 'serpavi' | 'boe' | 'web' | 'renter';
 
 export interface Source {
   id: string;
