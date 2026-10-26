@@ -1,6 +1,6 @@
-// Serves the repo so the UI can read /examples and the saved reports.
+// Serves the page and the example reports. Nothing else in the repo is reachable.
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, realpath } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,12 +24,40 @@ function sendJson(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+const MAX_BODY = 12 * 1024 * 1024;
+
+function notFound(res) {
+  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Not found');
+}
+
+function publicFile(pathname) {
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return null;
+  }
+  if (decoded.includes('\0')) return null;
+  const rel = normalize(decoded).replace(/^[/\\]+/, '');
+  const parts = rel.split(sep).filter(Boolean);
+  if (parts.some((part) => part === '..')) return null;
+  const top = parts[0];
+  if ((top !== 'ui' && top !== 'examples') || parts.length < 2) return null;
+  const file = join(base, ...parts);
+  if (!file.startsWith(base)) return null;
+  return file;
+}
+
 async function readBody(req) {
   const chunks = [];
   let size = 0;
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > 2_000_000) throw new Error('too large');
+    if (size > MAX_BODY) {
+      const err = new Error('Request body is too large.');
+      err.status = 413;
+      throw err;
+    }
     chunks.push(chunk);
   }
   return Buffer.concat(chunks).toString('utf8');
@@ -73,6 +101,7 @@ createServer(async (req, res) => {
       const payload = {
         listing,
         ...(typeof data.contract === 'string' && data.contract ? { contract: data.contract } : {}),
+        ...(typeof data.contractPdfBase64 === 'string' && data.contractPdfBase64 ? { contractPdfBase64: data.contractPdfBase64 } : {}),
         ...(data.answers && typeof data.answers === 'object' ? { answers: data.answers } : {}),
         ...(photos?.length ? { photos } : {}),
       };
@@ -88,7 +117,7 @@ createServer(async (req, res) => {
       res.end(text);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'The check could not be sent.';
-      sendJson(res, 502, { error: message });
+      sendJson(res, err?.status || 502, { error: message });
     }
     return;
   }
@@ -96,17 +125,24 @@ createServer(async (req, res) => {
     res.writeHead(302, { Location: '/ui/index.html' }).end();
     return;
   }
-  const file = normalize(join(base, path.replace(/^\/+/, '')));
-  if (!file.startsWith(base)) {
-    res.writeHead(403).end('Forbidden');
+  const file = publicFile(path);
+  if (!file) {
+    notFound(res);
     return;
   }
   try {
-    const body = await readFile(file);
+    const resolved = await realpath(file);
+    const uiDir = join(base, 'ui') + sep;
+    const examplesDir = join(base, 'examples') + sep;
+    if (!resolved.startsWith(uiDir) && !resolved.startsWith(examplesDir)) {
+      notFound(res);
+      return;
+    }
+    const body = await readFile(resolved);
     res.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
     res.end(body);
   } catch {
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Not found');
+    notFound(res);
   }
 }).listen(port, '127.0.0.1', () => {
   console.log(`http://127.0.0.1:${port}/`);

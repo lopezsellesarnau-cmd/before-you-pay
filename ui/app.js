@@ -12,6 +12,7 @@ const state = {
   listingText: '',
   listingName: '',
   contractText: '',
+  contractPdfBase64: '',
   contractName: '',
   otherName: '',
   photoText: '',
@@ -163,6 +164,7 @@ function onClick(e) {
   }
   if (action === 'clear-contract') {
     state.contractText = '';
+    state.contractPdfBase64 = '';
     state.contractName = '';
     paint();
   }
@@ -185,6 +187,7 @@ function onClick(e) {
     state.listingText = '';
     state.listingName = '';
     state.contractText = '';
+    state.contractPdfBase64 = '';
     state.contractName = '';
     state.otherName = '';
     state.draft = '';
@@ -309,6 +312,10 @@ function onDrop(e) {
   readFile(e.dataTransfer.files?.[0], zone.dataset.kind);
 }
 
+function isPdf(file) {
+  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+}
+
 function readFile(file, kind) {
   if (!file) return;
   if (kind === 'other') {
@@ -316,30 +323,30 @@ function readFile(file, kind) {
     paint();
     return;
   }
+  const pdf = isPdf(file);
+  if (pdf && kind !== 'contract') return;
   const reader = new FileReader();
   reader.onload = () => {
-    const text = String(reader.result || '');
-    if (kind === 'contract') {
+    const raw = String(reader.result || '');
+    if (kind === 'contract' && pdf) {
+      const comma = raw.indexOf(',');
       state.contractName = file.name;
-      state.contractText = file.type === 'application/pdf' || file.name.endsWith('.pdf') ? '' : text;
-      if (!state.contractText) state.contractName = `${file.name} (text only in this demo)`;
+      state.contractText = '';
+      state.contractPdfBase64 = comma >= 0 ? raw.slice(comma + 1) : '';
+    } else if (kind === 'contract') {
+      state.contractName = file.name;
+      state.contractText = raw;
+      state.contractPdfBase64 = '';
     } else {
       state.listingName = file.name;
-      state.listingText = text;
-      state.draft = text;
+      state.listingText = raw;
+      state.draft = raw;
       state.slot = null;
     }
     paint();
   };
-  if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-    if (kind === 'contract') {
-      state.contractName = file.name;
-      state.contractText = '';
-      paint();
-    }
-    return;
-  }
-  reader.readAsText(file);
+  if (pdf) reader.readAsDataURL(file);
+  else reader.readAsText(file);
 }
 
 function loadSample(id) {
@@ -373,6 +380,7 @@ function openHistory(id) {
   state.listingText = item.listingText;
   state.listingName = item.listingName;
   state.contractText = item.contractText;
+  state.contractPdfBase64 = item.contractPdfBase64 || '';
   state.contractName = item.contractName;
   state.photoText = item.photoText || '';
   state.photos = parsePhotoUrls(state.photoText).urls;
@@ -433,7 +441,8 @@ async function generate() {
   try {
     const payload = { listing: state.listingText };
     if (state.photos.length) payload.photos = state.photos;
-    if (state.contractText) payload.contract = state.contractText;
+    if (state.contractPdfBase64) payload.contractPdfBase64 = state.contractPdfBase64;
+    else if (state.contractText) payload.contract = state.contractText;
     if (Object.keys(state.answers).length) payload.answers = state.answers;
     const res = await fetch('/api/check', {
       method: 'POST',
@@ -511,6 +520,7 @@ function remember() {
     listingText: state.listingText,
     listingName: state.listingName,
     contractText: state.contractText,
+    contractPdfBase64: state.contractPdfBase64,
     contractName: state.contractName,
     photoText: state.photoText,
     answers: { ...state.answers },
