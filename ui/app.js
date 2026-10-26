@@ -46,6 +46,12 @@ const state = {
 };
 
 let token = 0;
+let traceEnter = false;
+let planEnter = false;
+let expandEnter = null;
+let termEnter = null;
+let folding = false;
+let sideClosing = false;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const $ = (id) => document.getElementById(id);
@@ -200,6 +206,7 @@ function onClick(e) {
     state.reveal = 0;
     state.doorNote = '';
     state.checkError = '';
+    state.stageEntered = false;
     state.slot = null;
     state.editingSlot = null;
     state.editingOriginal = null;
@@ -235,22 +242,79 @@ function onClick(e) {
     paintTrace();
   }
   if (action === 'side') {
-    state.side = state.side === 'rail' ? 'open' : 'rail';
+    const opening = state.side === 'rail';
+    state.side = opening ? 'open' : 'rail';
     /* A toggle during the run is a preference, so settle restores that choice. */
     if (state.playing) state.sideBefore = state.side;
-    $('app').classList.toggle('rail', state.side === 'rail');
+    if (!opening && !reduced) {
+      collapseSidebar();
+      return;
+    }
+    sideClosing = false;
     paintSidebar();
   }
   if (action === 'thought' && !state.playing) {
-    state.thoughtOpen = !state.thoughtOpen;
+    const opening = !state.thoughtOpen;
+    el.querySelector('.chev')?.classList.toggle('open', opening);
+    if (!opening) {
+      closeThen('#trace [data-disclose="trace"]', () => {
+        state.thoughtOpen = false;
+        paintTrace();
+      });
+      return;
+    }
+    state.thoughtOpen = true;
+    traceEnter = true;
     paintTrace();
+    armDisclose('#trace [data-disclose="trace"]');
+    traceEnter = false;
+    return;
   }
   if (action === 'plan' && !state.playing) {
-    state.planOpen = !state.planOpen;
+    const opening = !state.planOpen;
+    if (!opening && waitingOnYou()) return;
+    el.querySelector('.chev')?.classList.toggle('open', opening);
+    if (!opening) {
+      closeThen('[data-disclose="plan"]', () => {
+        state.planOpen = false;
+        paintSidebar();
+      });
+      return;
+    }
+    state.planOpen = true;
+    planEnter = true;
     paintSidebar();
+    armDisclose('[data-disclose="plan"]');
+    planEnter = false;
+    return;
   }
-  if (action === 'expand') toggleSet(state.openSteps, el.dataset.step);
-  if (action === 'term') toggleSet(state.openTerms, el.dataset.step);
+  if (action === 'expand') {
+    const key = el.dataset.step;
+    const opening = !state.openSteps.has(key);
+    el.querySelector('.chev')?.classList.toggle('open', opening);
+    if (!opening) {
+      closeThen(`[data-step-panel="${key}"]`, () => toggleSet(state.openSteps, key));
+      return;
+    }
+    expandEnter = key;
+    toggleSet(state.openSteps, key);
+    armDisclose(`[data-step-panel="${key}"]`);
+    expandEnter = null;
+    return;
+  }
+  if (action === 'term') {
+    const key = el.dataset.step;
+    const opening = !state.openTerms.has(key);
+    if (!opening) {
+      closeThen(`[data-term-panel="${key}"]`, () => toggleSet(state.openTerms, key));
+      return;
+    }
+    termEnter = key;
+    toggleSet(state.openTerms, key);
+    armDisclose(`[data-term-panel="${key}"]`);
+    termEnter = null;
+    return;
+  }
   if (action === 'term-full') {
     state.termFull.add(el.dataset.step);
     paintTrace();
@@ -436,6 +500,7 @@ async function generate() {
   state.checkStatus = state.photos.length
     ? 'I’m checking the listing and the photos. Each photo adds about a minute…'
     : 'I’m checking the listing. The checker may take a minute to wake…';
+  state.stageEntered = false;
   paint();
   let rep;
   try {
@@ -491,7 +556,7 @@ async function generate() {
   const total = revealCount();
   for (let i = 1; i <= total; i++) {
     if (mine !== token) return;
-    await sleep(reduced ? 0 : 160);
+    await sleep(reduced ? 0 : 40);
     state.reveal = i;
     document.querySelectorAll(`[data-reveal="${i}"]`).forEach((el) => {
       el.classList.remove('hold');
@@ -503,6 +568,9 @@ async function generate() {
       }
     });
   }
+  if (mine !== token) return;
+  await sleep(reduced ? 0 : 340);
+  if (mine !== token) return;
   document.querySelector('.report')?.classList.add('settled');
   remember();
 }
@@ -552,8 +620,14 @@ function paint() {
 }
 
 function paintSidebar() {
-  $('app').classList.toggle('rail', state.side === 'rail');
-  $('app').classList.toggle('wide', sideWide());
+  const app = $('app');
+  const wasRail = app.classList.contains('rail');
+  app.classList.toggle('rail', state.side === 'rail');
+  app.classList.toggle('wide', sideWide());
+  const side = $('sidebar');
+  side.classList.toggle('is-rail', state.side === 'rail');
+  side.classList.remove('side-leave');
+  const opened = wasRail && state.side !== 'rail' && !reduced;
   if (state.side === 'rail') {
     const buttons = [
       `<button type="button" class="rail-btn ${state.step === 1 ? 'on' : ''}" data-action="new" title="New report" aria-label="New report">${icon('compose')}</button>`,
@@ -567,6 +641,7 @@ function paintSidebar() {
       <button type="button" class="mark" data-action="side" aria-label="Expand sidebar">${icon('mark')}</button>
       <nav class="nav rail-nav">${buttons.join('')}</nav>`;
     $('sidebar').querySelectorAll('button.rail-btn[title="Checking"], button.rail-btn[aria-label="Checking this listing"]').forEach((el) => el.remove());
+    if (opened) armSide(side);
     return;
   }
   const items = state.history.map((h) => reportRow(h.title, verdictLabel(state.reports[h.reportKey]), h.id === state.activeHistory, `data-action="open-history" data-id="${esc(h.id)}"`)).join('');
@@ -585,7 +660,7 @@ function paintSidebar() {
         <span class="nav-ico chev ${planShown ? 'open' : ''}">${icon('chev')}</span>
         <span>Agentic workflow</span>
       </button>
-      ${planShown ? `<div id="workflow">${workflowHtml()}</div>` : ''}
+      ${planShown ? `<div class="disclose ${planEnter && !reduced ? '' : 'in'}" data-disclose="plan"><div class="disclose-body"><div id="workflow">${workflowHtml()}</div></div></div>` : ''}
       ${waitingOnYou() && sideWide() ? `<div class="side-ask">${questionHtml(rep.questions[0])}</div>` : ''}
       <div class="mode" role="tablist" aria-label="UI or terminal">
         <button type="button" data-action="mode" data-mode="ui" class="${state.mode === 'ui' ? 'on' : ''}">UI</button>
@@ -606,7 +681,38 @@ function paintSidebar() {
     ${count ? `<div class="report-list">${pending}${items}</div>` : ''}
     ${trace}
     <div class="side-foot"><b>Demo build</b><span>Replays saved Argumosa runs</span></div>`;
+  if (opened) armSide(side);
   requestAnimationFrame(drawFlow);
+}
+
+function armSide(side) {
+  side.classList.remove('side-swap');
+  void side.offsetWidth;
+  side.classList.add('side-swap');
+}
+
+function collapseSidebar() {
+  const app = $('app');
+  const side = $('sidebar');
+  sideClosing = true;
+  side.classList.add('side-leave');
+  app.classList.add('rail');
+  app.classList.remove('wide');
+  let settled = false;
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    side.removeEventListener('transitionend', onEnd);
+    if (!sideClosing || state.side !== 'rail') return;
+    sideClosing = false;
+    paintSidebar();
+    if (!reduced) armSide($('sidebar'));
+  };
+  const onEnd = (event) => {
+    if (event.target === side && event.propertyName === 'width') finish();
+  };
+  side.addEventListener('transitionend', onEnd);
+  setTimeout(finish, 280);
 }
 
 function reportRow(title, subtitle, on, attrs) {
@@ -2020,7 +2126,7 @@ function traceHtml() {
       <span class="tree-title ${running ? 'think-in' : ''}">${title}</span>
       <span class="tree-meta">${elapsed}${rows.length ? ` · ${rows.length} steps` : ''}</span>
     </button>
-    ${open ? `<ul>${rows.map((entry, i) => treeRow(entry, i, rows)).join('')}</ul>` : ''}
+    ${open ? `<div class="disclose ${traceEnter && !reduced ? '' : 'in'}" data-disclose="trace"><div class="disclose-body"><ul>${rows.map((entry, i) => treeRow(entry, i, rows)).join('')}</ul></div></div>` : ''}
   </section>`;
 }
 
@@ -2078,7 +2184,7 @@ function treeRow(entry, i, rows) {
       <span class="time">${esc(dur(rows, entry))}</span>
       <span class="chev ${open ? 'open' : ''}">${icon('chev')}</span>
     </button>
-    ${open ? `<pre class="step-detail">${esc(pretty(entry.detail))}</pre>` : ''}
+    ${open ? `<div class="disclose ${expandEnter === String(i) && !reduced ? '' : 'in'}" data-step-panel="${i}"><div class="disclose-body"><pre class="step-detail">${esc(pretty(entry.detail))}</pre></div></div>` : ''}
   </li>`;
 }
 
@@ -2099,8 +2205,7 @@ function terminalHtml(rows) {
         ${fail ? '<span class="exit">Exit 1</span>' : `<span class="dur">${esc(dur(rows, entry))}</span>`}
         <button type="button" class="copy" data-copy="${esc(`$ ${entry.agent} ${entry.action}\n${full}`)}">Copy</button>
       </div>
-      ${hidden ? `<button type="button" class="earlier" data-action="term-full" data-step="${i}">${hidden} earlier lines</button>` : ''}
-      <pre>${colorize(shown)}</pre>
+      ${open ? `<div class="disclose ${termEnter === String(i) && !reduced ? '' : 'in'}" data-term-panel="${i}"><div class="disclose-body">${hidden ? `<button type="button" class="earlier" data-action="term-full" data-step="${i}">${hidden} earlier lines</button>` : ''}<pre>${colorize(shown)}</pre></div></div>` : ''}
     </div>`;
   }).join('');
   return `<div class="term-log">${lines}</div>`;
@@ -2114,8 +2219,10 @@ function stageHtml() {
   const rep = report();
   const address = esc(listingTitle());
   if (state.playing) {
+    const enter = !state.stageEntered;
+    state.stageEntered = true;
     // Working: the workflow stays put. The thinking line stays put. The steps scroll beneath it.
-    return `<header class="report-hero generating">
+    return `<header class="report-hero generating${enter ? ' stage-enter' : ''}">
       <div class="work-pin">
         <h2 class="work-pin-title">Agentic workflow</h2>
         <div id="workflow">${workflowHtml()}</div>
@@ -2720,6 +2827,48 @@ function stepSource(dir) {
   if (!facts.length) return;
   state.sourceAt = (state.sourceAt + dir + facts.length) % facts.length;
   paintStage();
+}
+
+function armDisclose(selector) {
+  const nodes = [...document.querySelectorAll(selector)];
+  if (!nodes.length) return;
+  if (reduced) {
+    nodes.forEach((el) => el.classList.add('in'));
+    return;
+  }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      nodes.forEach((el) => el.classList.add('in'));
+    });
+  });
+}
+
+function foldAway(selector) {
+  const el = document.querySelector(selector);
+  if (!el || reduced) return Promise.resolve();
+  el.classList.add('out');
+  el.classList.remove('in');
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    el.addEventListener('transitionend', (event) => {
+      if (event.target === el) finish();
+    });
+    setTimeout(finish, 320);
+  });
+}
+
+function closeThen(selector, apply) {
+  if (folding) return;
+  folding = true;
+  foldAway(selector).then(() => {
+    folding = false;
+    apply();
+  });
 }
 
 function toggleSet(set, key) {
