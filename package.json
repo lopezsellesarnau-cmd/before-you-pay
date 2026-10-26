@@ -11,7 +11,7 @@
     "check": "node --env-file-if-exists=.env src/cli.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
-    "start": "node src/server.ts",
+    "start": "node --env-file-if-exists=.env src/server.ts",
     "ui": "node --env-file-if-exists=.env ui/server.mjs"
   },
   "devDependencies": {
