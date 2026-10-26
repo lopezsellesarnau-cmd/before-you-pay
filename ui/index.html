@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Before you pay</title>
+  <style>html, body { background: #f4f4f4; color: #1a1a1a; }</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Pixel:ELSH@1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shadcn.css" />
+  <link rel="stylesheet" href="./app.css?v=role" />
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-col">
+      <section class="frame centered" id="frame"></section>
+    </div>
+  </div>
+  <input id="file-listing" type="file" accept=".txt,text/plain" hidden />
+  <input id="file-contract" type="file" accept=".txt,text/plain,.pdf,application/pdf" hidden />
+  <input id="file-other" type="file" hidden />
+  <script type="module" src="./app.js?v=wave"></script>
+</body>
+</html>

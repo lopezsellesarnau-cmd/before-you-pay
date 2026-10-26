@@ -1,0 +1,54 @@
+/*
+ * shadcn/ui theme tokens — preset "base-nova", base color neutral, radius default.
+ * Pulled verbatim from the shadcn CLI init payload (shadcn@4.22.1) so this
+ * vanilla app shares the same palette, radii and font as a shadcn project.
+ * The React components themselves are not installed: this UI has no React build.
+ */
+:root {
+  /* Cool grey field, white cards, near-black actions. Canvas ~#f4f4f4, cards #fff. */
+  --background: #f4f4f4;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #1a1a1a;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f3f3;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f3f3f3;
+  --muted-foreground: #6f6f6f;
+  --accent: #f3f3f3;
+  --accent-foreground: #1a1a1a;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e6e6e6;
+  --input: #e6e6e6;
+  --ring: #cfcfcf;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #1a1a1a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffffff;
+  --sidebar-accent-foreground: #1a1a1a;
+  --sidebar-border: #e6e6e6;
+  --sidebar-ring: #cfcfcf;
+
+  /* Derived radii, as Tailwind v4 + shadcn define them */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  /* Bento Layout 1 h1 is Geist Sans at medium. Google Fonts family name is Geist. */
+  --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
+  /* Stats-row labels are Geist Pixel Square. Square is ELSH 1; see font-variation-settings in app.css. */
+  --font-mono: "Geist Pixel", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
