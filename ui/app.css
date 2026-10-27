@@ -13,14 +13,13 @@
   --hair: rgba(26, 26, 26, 0.08);
   --hair-2: rgba(26, 26, 26, 0.14);
   --wash: rgba(26, 26, 26, 0.04);
-  /* Verdict palette — signal, warmed one step so it belongs on cream.
-   * Rose → coral-rose, chartreuse → honey, mint → sage-mint. Labels are deeper so text never goes neon. */
-  --pass: #3fd9a4;        /* sage-mint fill / bars / dots */
-  --flag: #ff4f5e;        /* coral-rose */
-  --check: #f5c842;       /* honey */
-  --pass-text: #1b7250;   /* deep sage for labels */
-  --flag-text: #c4001d;   /* raspberry ink */
-  --check-text: #7b5401;  /* amber ink (readable on cream) */
+  /* Verdict palette. Signal stays loud; the inks stay dark enough to read. */
+  --pass: #2ee0d2;        /* neon mint, pulled toward blue */
+  --flag: #ff4f7a;        /* rose, more pink than coral */
+  --check: #e6f23a;       /* neon yellow */
+  --pass-text: #0d6a66;   /* deep teal for labels */
+  --flag-text: #c4004a;   /* deep pink ink */
+  --check-text: #5a6400;  /* olive ink, readable on cream */
   --tint-pass: color-mix(in srgb, var(--pass) 16%, var(--card));
   --tint-flag: color-mix(in srgb, var(--flag) 12%, var(--card));
   --tint-check: color-mix(in srgb, var(--check) 24%, var(--card));
@@ -702,8 +701,12 @@ button { cursor: pointer; }
 .app:not(.wide) .sidebar .aw-arrow.both { display: none; }
 .app:not(.wide) .sidebar .aw-card,
 .app:not(.wide) .sidebar .aw-stack { flex: none; max-width: none; }
-.side-ask { margin-top: 2px; }
+.side-ask { margin-top: 2px; animation: ask-in 280ms cubic-bezier(0.2, 0, 0, 1) 160ms both; }
 .side-ask .ask { background: var(--card); }
+@keyframes ask-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
 @keyframes pulse { from { transform: scale(1); opacity: 0.35; } to { transform: scale(1.5); opacity: 0; } }
 .port {
   width: 8px; height: 8px; border-radius: 50%; flex: none;
@@ -1110,34 +1113,32 @@ button { cursor: pointer; }
 .dot.amber { background: var(--check); }
 .dot.green, .dot.teal { background: var(--pass); }
 .dot.unknown { background: #9a9a9a; }
-/* Verdict strip: one dither cell tall, square blocks abutted (no pill, no pitch gap). */
+/* Verdict strip: one map-cell thick, running the full width of the card. */
 .segments {
   display: flex;
   gap: 0;
   align-items: stretch;
-  justify-content: flex-start;
   width: 100%;
-  height: var(--dither-cell, 6px);
+  height: var(--dither-cell, 5px);
   border-radius: 0;
-  overflow: visible;
+  overflow: hidden;
   line-height: 0;
   font-size: 0;
+  transform-origin: left center;
 }
 .seg {
   position: relative;
   display: block;
-  flex: none;
+  flex: var(--share, 1) 1 0%;
+  min-width: 0;
   height: 100%;
   border-radius: 0;
-  background: transparent;
-  font-style: normal;
-  line-height: 0;
+  background: var(--panel-2);
 }
-.seg .px { background: var(--panel-2); }
-.seg.red .px { background: var(--flag); }
-.seg.amber .px { background: var(--check); }
-.seg.green .px { background: var(--pass); }
-.seg.unknown .px { background: #9a9a9a; }
+.seg.red { background: var(--flag); }
+.seg.amber { background: var(--check); }
+.seg.green { background: var(--pass); }
+.seg.unknown { background: #9a9a9a; }
 .huge { margin: 0; font-family: var(--display); font-size: 36px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; }
 .huge-label { margin: 8px 0 0; font-size: 14px; line-height: 1.4; color: var(--muted); max-width: 28ch; }
 .overview-line {
@@ -1194,17 +1195,17 @@ button { cursor: pointer; }
   position: relative;
   display: block;
   flex: none;
-  width: var(--dither-cell, 6px);
+  width: var(--dither-cell, 5px);
   height: auto;
   border-radius: 0;
-  background: transparent;
+  background: var(--teal);
   font-style: normal;
   line-height: 0;
-  overflow: visible;
+  overflow: hidden;
+  transform-origin: center bottom;
 }
-.col-bar .px { background: var(--teal); }
-.col-bar.muted .px { background: var(--panel); }
-.col-bar.coral .px { background: var(--coral); }
+.col-bar.muted { background: var(--panel); }
+.col-bar.coral { background: var(--coral); }
 .px {
   position: absolute;
   display: block;
@@ -1228,10 +1229,25 @@ button { cursor: pointer; }
    Settled must not cancel it: the report often gains .settled in the same
    breath the bars first appear, which used to snap every cell on at once. */
 @media (prefers-reduced-motion: no-preference) {
+  .segments.is-filling {
+    animation: bar-fill-x 400ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .col-bar.is-filling {
+    animation: bar-fill-y 400ms cubic-bezier(0.2, 0, 0, 1) both;
+    animation-delay: calc(var(--i, 0) * 40ms);
+  }
   .is-filling .px {
     animation: bar-cell 1ms linear both;
     animation-delay: calc(var(--i) * 40ms);
   }
+}
+@keyframes bar-fill-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes bar-fill-y {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
 }
 .col-label { font-size: 12px; color: var(--muted); text-align: center; }
 
@@ -1437,8 +1453,16 @@ button { cursor: pointer; }
 }
 .sv-meta .conf { margin-left: 0; font-size: inherit; font-weight: 400; }
 mark.rest { background: color-mix(in srgb, var(--mark) 18%, transparent); border-radius: 3px; color: inherit; }
-/* Active source quote: honey washed into the paper panel. --mark is canary and reads as highlighter yellow here. */
-mark.active { background: color-mix(in srgb, var(--check) 32%, var(--panel)); border-radius: 3px; color: var(--ink); }
+/* Active source quote: the same white box and black ring as a selected listing phrase. */
+mark.active {
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 5px;
+  box-shadow: 0 0 0 2px var(--ink);
+  padding: 0 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
 .missing {
   margin: 0;
   padding: 8px 10px;

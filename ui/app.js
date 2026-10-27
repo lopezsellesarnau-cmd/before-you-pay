@@ -52,6 +52,7 @@ let expandEnter = null;
 let termEnter = null;
 let folding = false;
 let sideClosing = false;
+let askScroll = 0;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const $ = (id) => document.getElementById(id);
@@ -620,6 +621,7 @@ function paint() {
 }
 
 function paintSidebar() {
+  const hadAsk = !!$('sidebar').querySelector('.side-ask');
   const app = $('app');
   const wasRail = app.classList.contains('rail');
   app.classList.toggle('rail', state.side === 'rail');
@@ -683,6 +685,35 @@ function paintSidebar() {
     <div class="side-foot"><b>Demo build</b><span>Replays saved Argumosa runs</span></div>`;
   if (opened) armSide(side);
   requestAnimationFrame(drawFlow);
+  if (!hadAsk && $('sidebar').querySelector('.side-ask')) scrollSidebarToAsk();
+}
+
+function scrollSidebarToAsk() {
+  const scroller = $('sidebar');
+  const ask = scroller?.querySelector('.side-ask');
+  if (!scroller || !ask) return;
+  const delta = ask.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+  const target = Math.max(0, Math.min(scroller.scrollHeight - scroller.clientHeight, scroller.scrollTop + delta - 12));
+  const distance = target - scroller.scrollTop;
+  if (Math.abs(distance) < 8) return;
+  askScroll += 1;
+  const id = askScroll;
+  if (reduced) {
+    scroller.scrollTop = target;
+    return;
+  }
+  const scale = Math.abs(distance) <= 100 ? 1 : Math.abs(distance) <= 200 ? 1.3 : Math.abs(distance) <= 400 ? 1.6 : 1.8;
+  const duration = Math.round(300 * scale);
+  const start = scroller.scrollTop;
+  const t0 = performance.now();
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - ((-2 * t + 2) ** 3) / 2);
+  const frame = (now) => {
+    if (id !== askScroll) return;
+    const t = Math.min(1, (now - t0) / duration);
+    scroller.scrollTop = start + distance * ease(t);
+    if (t < 1) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
 }
 
 function armSide(side) {
@@ -2633,65 +2664,21 @@ function findingsHtml(rep, start) {
   return { html: `<div class="bento two">${parts.join('')}</div>`, next: n };
 }
 
-// One map cell (1 user unit), not the 1.4 pitch — blocks sit flush so the bar reads solid.
-function ditherCellPx() {
-  const svg = document.querySelector('.report-map .dither');
-  const vb = svg?.viewBox?.baseVal;
-  const w = svg?.getBoundingClientRect().width || 0;
-  if (!svg || !w || !vb?.width) return 6;
-  return Math.max(4, Math.min(9, Math.round(w / vb.width)));
+// One painted square from the Spain map. Bars use that same thickness.
+function mapCellPx() {
+  const rect = document.querySelector('.report .dither .land rect');
+  const w = rect?.getBoundingClientRect().width || 0;
+  if (w >= 1) return Math.round(w * 100) / 100;
+  return 0;
 }
 
-function apportion(weights, total) {
-  const n = weights.length;
-  if (!n) return [];
-  const slots = Math.max(total, n);
-  const sum = weights.reduce((a, b) => a + b, 0) || 1;
-  const raw = weights.map((w) => (w / sum) * slots);
-  const counts = raw.map((x) => Math.floor(x));
-  let used = counts.reduce((a, b) => a + b, 0);
-  for (let i = 0; i < n; i += 1) {
-    if (weights[i] > 0 && counts[i] < 1) {
-      counts[i] = 1;
-      used += 1;
-    }
-  }
-  while (used > slots) {
-    let idx = 0;
-    for (let i = 1; i < n; i += 1) if (counts[i] > counts[idx]) idx = i;
-    if (counts[idx] <= 1) break;
-    counts[idx] -= 1;
-    used -= 1;
-  }
-  const order = raw
-    .map((x, i) => [x - Math.floor(x), i])
-    .sort((a, b) => b[0] - a[0] || a[1] - b[1]);
-  let k = 0;
-  while (used < slots) {
-    counts[order[k % n][1]] += 1;
-    used += 1;
-    k += 1;
-  }
-  return counts;
-}
-
-function pxBlocks(count, start) {
-  let html = '';
-  for (let i = 0; i < count; i += 1) {
-    const n = start + i;
-    html += `<span class="px" style="--i:${n};--x:${i}"></span>`;
-  }
-  return html;
-}
-
-// Play the block fill from the start. No-op while the bar is still held, and
+// Play the stroke along the bar. No-op while the bar is still held, and
 // no-op under reduced motion so the full bar stays visible.
 function replayBar(bar) {
   if (!bar) return;
   bar.classList.remove('is-filling');
   if (bar.closest('.hold')) return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (!bar.querySelector('.px')) return;
   void bar.offsetWidth;
   bar.classList.add('is-filling');
 }
@@ -2699,44 +2686,38 @@ function replayBar(bar) {
 function layoutPixelBars() {
   const root = document.querySelector('.report');
   if (!root) return;
-  const cell = ditherCellPx();
-  root.style.setProperty('--dither-cell', `${cell}px`);
+  const cell = mapCellPx();
+  if (cell) root.style.setProperty('--dither-cell', `${cell}px`);
+  const stroke = cell || 5;
 
   root.querySelectorAll('.segments').forEach((bar) => {
-    const width = bar.clientWidth;
-    if (!width) return;
     const segs = [...bar.querySelectorAll(':scope > .seg')];
-    const weights = segs.map((seg) => Number(seg.dataset.share) || 0);
     if (!segs.length) return;
-    const slots = Math.max(segs.length, Math.floor(width / cell));
-    const counts = apportion(weights, slots);
-    const key = `${cell}:${counts.join(',')}`;
+    const key = `line:${stroke}:${segs.map((seg) => seg.dataset.share || '0').join(',')}`;
     if (bar.dataset.px === key) return;
     bar.dataset.px = key;
-    let cursor = 0;
-    segs.forEach((seg, idx) => {
-      const n = counts[idx] || 0;
-      seg.style.width = `${n * cell}px`;
-      seg.innerHTML = pxBlocks(n, cursor);
-      cursor += n;
+    segs.forEach((seg) => {
+      seg.style.setProperty('--share', seg.dataset.share || '0');
+      seg.style.width = '';
+      seg.replaceChildren();
     });
     replayBar(bar);
   });
 
-  root.querySelectorAll('.col-bar').forEach((bar) => {
+  root.querySelectorAll('.col-bar').forEach((bar, idx) => {
+    bar.style.setProperty('--i', String(idx));
     const track = bar.closest('.col-track');
     const trackH = track?.clientHeight || 0;
     if (!trackH) return;
-    const maxCells = Math.max(1, Math.floor(trackH / cell));
     const pct = Number(bar.dataset.pct);
     const ratio = Number.isFinite(pct) ? pct / 100 : 0;
-    const count = Math.max(1, Math.min(maxCells, Math.round(ratio * maxCells)));
-    const key = `${cell}:${count}`;
+    const height = Math.max(stroke, Math.round(ratio * trackH));
+    const key = `line:${stroke}:${height}`;
     if (bar.dataset.px === key) return;
     bar.dataset.px = key;
-    bar.style.width = `${cell}px`;
-    bar.style.height = `${count * cell}px`;
-    bar.innerHTML = pxBlocks(count, 0);
+    bar.style.width = `${stroke}px`;
+    bar.style.height = `${height}px`;
+    bar.replaceChildren();
     replayBar(bar);
   });
 }
