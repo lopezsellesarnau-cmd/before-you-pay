@@ -9,6 +9,10 @@ renter approves and sends.
 
 Open Agent Hackathon 2026 · Track 1, Solving Fragmented Intelligence.
 
+## Demo Video
+
+Demo video: https://iframe.mediadelivery.net/embed/778121/debca8ee-f5de-4942-a2b8-5c995c3658e0
+
 ```
 $ npm run check -- examples/argumosa-3c.listing.txt
 
