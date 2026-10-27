@@ -1,4 +1,4 @@
-# Before you pay the deposit
+# Casa · Before you pay the deposit
 
 We are building an agent that helps **people renting a flat in Spain** avoid paying a deposit
 for a flat that isn't what the listing says, by **cross-checking the listing against public
@@ -42,6 +42,19 @@ npm run check -- examples/argumosa-3c.scam.listing.txt --photo 'https://images.u
 npm run check -- examples/argumosa-3c.listing.txt --contract examples/contract-contradicts-listing.pdf
 OFFLINE=1 npm run check -- examples/argumosa-3c.listing.txt   # saved copies only
 ```
+
+Web page and API:
+
+```bash
+API_KEY=dev npm start                 # API on :3000 — POST /check (X-API-Key), GET /health
+CHECK_API_URL=http://127.0.0.1:3000 CHECK_API_KEY=dev npm run ui   # page on http://127.0.0.1:4173/
+```
+
+`npm run ui` serves the report page and proxies Generate to `POST /check`, so the key never
+reaches the browser. Without `CHECK_API_URL` it uses the deployed API
+(`https://before-you-pay.onrender.com`, free plan: the first request wakes it up, ~20 s).
+`POST /check` takes `listing`, and optionally `contract` (text), `contractPdfBase64`,
+`photos` and `answers` (to reply to a question), and returns the report as JSON.
 
 `--contract` takes a contract as text or PDF (text layer; scanned PDFs need OCR).
 `--json out.json` writes the full report (findings, questions, facts, sources, email draft,
