@@ -31,6 +31,10 @@ export class Trace {
     const e = { t: new Date().toISOString(), step: ++this.step, agent, action, detail };
     this.entries.push(e);
     appendFileSync(this.file, JSON.stringify(e) + '\n');
+    this.onEntry?.(e);
     if (process.env.VERBOSE) console.error(`  ${String(e.step).padStart(2)} ${agent.padEnd(10)} ${action}`);
   }
+
+  /** Called as each step is logged, so a live check can stream it. */
+  onEntry?: (entry: TraceEntry) => void;
 }

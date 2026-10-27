@@ -11,7 +11,7 @@ import { reviewEmail } from './agents/riskguard.ts';
 import { CHECKS } from './checks/index.ts';
 import { brightdataConfigured, lens, type LensResult } from './sources/brightdata.ts';
 import { provider, type Generate } from './llm/provider.ts';
-import { Trace } from './log.ts';
+import { Trace, type TraceEntry } from './log.ts';
 import { WorldStore } from './world/store.ts';
 import type { Finding, Source } from './world/types.ts';
 
@@ -37,9 +37,10 @@ type Task =
 const STRATEGIES: catastro.Strategy[] = ['reference', 'address', 'address-normalised', 'coordinates'];
 const ORDER = { red: 0, amber: 1, unknown: 2, green: 3 };
 
-export async function run(input: Input) {
+export async function run(input: Input, hooks?: { onTrace?: (entry: TraceEntry) => void }) {
   const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID().slice(0, 6)}`;
   const trace = new Trace(runId);
+  if (hooks?.onTrace) trace.onEntry = hooks.onTrace;
   const world = new WorldStore();
   const llm = await provider();
   trace.log('planner', 'start', { provider: llm.name, model: llm.model });
@@ -190,6 +191,7 @@ export async function run(input: Input) {
           const v = reviewExplanation(world, f, text);
           if (v.ok) {
             f.explanation = text;
+            trace.log('critic', `explanation of ${f.checkId}: kept`);
             break;
           }
           feedback = v.reason;

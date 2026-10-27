@@ -4,11 +4,12 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { run, type Input } from './agent.ts';
+import type { TraceEntry } from './log.ts';
 import { readDocument } from './sources/document.ts';
 
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 
-type Analyze = (input: Input) => Promise<unknown>;
+type Analyze = (input: Input, hooks?: { onTrace?: (entry: TraceEntry) => void }) => Promise<unknown>;
 type ApiServerOptions = {
   apiKey?: string;
   corsOrigin?: string;
@@ -48,6 +49,14 @@ async function readJson(req: IncomingMessage): Promise<unknown> {
   } catch {
     throw new HttpError(400, 'Request body must be valid JSON.');
   }
+}
+
+function wantsStream(req: IncomingMessage) {
+  return (req.headers.accept ?? '').includes('application/x-ndjson');
+}
+
+function writeEvent(res: ServerResponse, data: unknown) {
+  res.write(`${JSON.stringify(data)}\n`);
 }
 
 function isStringRecord(value: unknown): value is Record<string, string> {
@@ -187,7 +196,39 @@ export function createApiServer(
         ...(data.photos === undefined ? {} : { photos: data.photos as string[] }),
       };
 
-      sendJson(res, 200, await analyze(input));
+      let streaming = false;
+      try {
+        if (wantsStream(req)) {
+          res.writeHead(200, {
+            'content-type': 'application/x-ndjson; charset=utf-8',
+            'cache-control': 'no-store',
+            'x-accel-buffering': 'no',
+          });
+          streaming = true;
+          const report = await analyze(input, {
+            onTrace(entry) {
+              writeEvent(res, { type: 'trace', entry });
+            },
+          });
+          writeEvent(res, { type: 'report', report });
+          res.end();
+          return;
+        }
+        sendJson(res, 200, await analyze(input));
+      } catch (error) {
+        const message = error instanceof HttpError ? error.message : 'The check could not be completed.';
+        if (streaming) {
+          writeEvent(res, { type: 'error', error: message });
+          res.end();
+          return;
+        }
+        if (error instanceof HttpError) {
+          sendJson(res, error.status, { error: error.message });
+          return;
+        }
+        console.error('POST /check failed:', error);
+        sendJson(res, 500, { error: 'The check could not be completed.' });
+      }
     } catch (error) {
       if (error instanceof HttpError) {
         sendJson(res, error.status, { error: error.message });

@@ -39,6 +39,8 @@ const state = {
   doorNote: '',
   checkError: '',
   checkStatus: '',
+  /* True only while a live check is playing. Saved reports keep the canned line. */
+  liveRun: false,
   loadError: '',
   side: 'open',
   /* Sidebar width the user had before a run. Collapse is only for the working state. */
@@ -53,6 +55,7 @@ let termEnter = null;
 let folding = false;
 let sideClosing = false;
 let askScroll = 0;
+let diagramNow = null;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const $ = (id) => document.getElementById(id);
@@ -453,6 +456,7 @@ function openHistory(id) {
   state.reportKey = item.reportKey;
   state.step = 2;
   state.playing = false;
+  state.liveRun = false;
   state.visible = report().trace.length;
   state.reveal = 99;
   state.doorNote = '';
@@ -485,11 +489,13 @@ async function generate() {
     state.listingName = state.listingName || 'Pasted listing';
   }
   state.checkError = '';
+  state.liveRun = false;
   holdSidebar();
   state.reportKey = null;
   state.step = 2;
   state.playing = true;
   state.visible = 0;
+  diagramNow = null;
   state.reveal = 0;
   state.openSteps = new Set();
   state.openTerms = new Set();
@@ -504,6 +510,83 @@ async function generate() {
   state.stageEntered = false;
   paint();
   let rep;
+  let streamed = false;
+  const stubId = `live-${mine}`;
+
+  async function walkEntry(index) {
+    const current = report();
+    if (!current) return;
+    state.visible = index;
+    const entry = current.trace[index - 1];
+    if (isFailure(entry)) state.openTerms.add(String(index - 1));
+    const path = freshStages(entry, current.trace.slice(0, index - 1));
+    const steps = path.length > 1 && !reduced ? path : [path.at(-1) || stageOf(entry)];
+    for (let s = 0; s < steps.length; s++) {
+      if (mine !== token) return;
+      diagramNow = steps[s];
+      if (s === 0) {
+        paintTrace();
+        paintGeo();
+      }
+      paintWorkflow();
+      if (s < steps.length - 1) await sleep(280);
+    }
+  }
+
+  async function consumeLive(res) {
+    const stub = {
+      runId: stubId,
+      provider: 'live',
+      trace: [],
+      findings: [],
+      questions: [],
+      facts: [],
+      sources: [],
+      summary: {},
+    };
+    state.reports[stubId] = stub;
+    state.reportKey = stubId;
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    let final = null;
+    const take = async (line) => {
+      if (!line || mine !== token) return;
+      let msg;
+      try {
+        msg = JSON.parse(line);
+      } catch {
+        throw new Error('The checker sent a step the page could not read.');
+      }
+      if (msg.type === 'error') throw new Error(msg.error || 'The check failed.');
+      if (msg.type === 'trace' && msg.entry) {
+        stub.trace.push(msg.entry);
+        await walkEntry(stub.trace.length);
+      } else if (msg.type === 'report') final = msg.report;
+    };
+    try {
+      while (mine === token) {
+        const { value, done } = await reader.read();
+        if (value) buf += dec.decode(value, { stream: !done });
+        let nl;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          await take(line);
+        }
+        if (done) break;
+      }
+      if (buf.trim() && mine === token) await take(buf.trim());
+    } finally {
+      reader.cancel().catch(() => {});
+      delete state.reports[stubId];
+      if (state.reportKey === stubId) state.reportKey = null;
+    }
+    if (mine !== token) return null;
+    if (!final || !Array.isArray(final.trace)) throw new Error('The checker did not return a report.');
+    return final;
+  }
+
   try {
     const payload = { listing: state.listingText };
     if (state.photos.length) payload.photos = state.photos;
@@ -512,17 +595,31 @@ async function generate() {
     if (Object.keys(state.answers).length) payload.answers = state.answers;
     const res = await fetch('/api/check', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', accept: 'application/x-ndjson' },
       body: JSON.stringify(payload),
     });
-    const data = await res.json().catch(() => ({}));
     if (mine !== token) return;
-    if (!res.ok) throw new Error(data.error || 'The check failed.');
-    if (!Array.isArray(data.trace)) throw new Error('The checker did not return a report.');
-    rep = data;
+    const ctype = res.headers.get('content-type') || '';
+    if (!res.ok) {
+      const data = ctype.includes('json') ? await res.json().catch(() => ({})) : {};
+      throw new Error(data.error || 'The check failed.');
+    }
+    state.liveRun = true;
+    if (ctype.includes('application/x-ndjson') && res.body) {
+      rep = await consumeLive(res);
+      if (mine !== token || !rep) return;
+      streamed = true;
+    } else {
+      const data = await res.json();
+      if (!Array.isArray(data.trace)) throw new Error('The checker did not return a report.');
+      rep = data;
+    }
   } catch (err) {
     if (mine !== token) return;
+    delete state.reports[stubId];
+    if (state.reportKey === stubId) state.reportKey = null;
     state.playing = false;
+    state.liveRun = false;
     releaseSidebar();
     state.checkError = err instanceof Error ? err.message : 'The check failed.';
     state.step = 1;
@@ -533,22 +630,19 @@ async function generate() {
   const id = `${rep.runId || 'live'}-${state.answers['address.door'] || ''}`;
   state.reports[id] = rep;
   state.reportKey = id;
-  rep.trace.forEach((entry, i) => {
-    if (isFailure(entry)) state.openTerms.add(String(i));
-  });
-  paint();
-  const delays = pace(rep.trace);
-  for (let i = 1; i <= rep.trace.length; i++) {
+  const shown = streamed ? state.visible : 0;
+  if (!streamed) paint();
+  const delays = streamed ? null : pace(rep.trace);
+  for (let i = shown + 1; i <= rep.trace.length; i++) {
     if (mine !== token) return;
-    await sleep(delays[i - 1]);
+    if (delays) await sleep(delays[i - 1]);
     if (mine !== token) return;
-    state.visible = i;
-    paintWorkflow();
-    paintTrace();
-    paintGeo();
+    await walkEntry(i);
   }
   if (mine !== token) return;
+  diagramNow = null;
   state.playing = false;
+  state.liveRun = false;
   state.thoughtOpen = false;
   state.reveal = 0;
   releaseSidebar();
@@ -1845,6 +1939,30 @@ function sideWide() {
   return state.side === 'open' && state.step === 2 && !state.playing && (waitingOnYou() || state.planOpen);
 }
 
+function stagePath(entry) {
+  if (!entry) return [];
+  const action = String(entry.action || '');
+  if (entry.agent === 'riskguard') {
+    if (/no email|template rejected/.test(action)) return ['risk'];
+    if (/email draft rejected/.test(action)) return ['risk', 'email'];
+    if (/fixed template/.test(action)) return ['email'];
+    if (/email draft approved/.test(action)) return ['risk', 'email', 'approve'];
+    if (/waiting for the renter/.test(action)) return ['approve'];
+    return ['risk'];
+  }
+  const stage = stageOf(entry);
+  return stage ? [stage] : [];
+}
+
+// Nodes this step introduces. A line that covers several cards walks through the new ones.
+function freshStages(entry, prior) {
+  const path = stagePath(entry);
+  if (!path.length) return [];
+  const seen = new Set(prior.flatMap((item) => stagePath(item)));
+  const novel = path.filter((id) => !seen.has(id));
+  return novel.length ? novel : [path.at(-1)];
+}
+
 function stageOf(entry) {
   if (!entry) return null;
   const action = String(entry.action || '');
@@ -1859,6 +1977,7 @@ function stageOf(entry) {
   }
   if (entry.agent === 'critic') {
     if (/needs a human check/.test(action)) return 'review';
+    if (/^explanation/.test(action)) return 'explainer';
     return 'critic';
   }
   if (entry.agent === 'riskguard') {
@@ -1898,10 +2017,18 @@ const AGENT_ICON = {
 
 function workflowHtml() {
   const trace = visibleTrace();
-  const has = (pred) => trace.some(pred);
-  const agent = (name) => has((e) => e.agent === name);
-  const actionHas = (name, re) => has((e) => e.agent === name && re.test(String(e.action)));
-  const now = waitingOnYou() ? 'renter' : (state.playing ? stageOf(trace.at(-1)) : null);
+  const agent = (name) => trace.some((e) => e.agent === name);
+  const reached = new Set();
+  trace.forEach((entry, i) => {
+    const path = stagePath(entry);
+    let upto = path.length - 1;
+    if (i === trace.length - 1 && state.playing && diagramNow) {
+      const at = path.indexOf(diagramNow);
+      if (at >= 0) upto = at;
+    }
+    path.slice(0, upto + 1).forEach((id) => reached.add(id));
+  });
+  const now = waitingOnYou() ? 'renter' : (state.playing ? (diagramNow || stageOf(trace.at(-1))) : null);
   const on = {
     renter: trace.length > 0,
     planner: agent('planner'),
@@ -1914,11 +2041,11 @@ function workflowHtml() {
     sources: ['catastro', 'law', 'price', 'photos'].some(agent),
     checks: agent('checks'),
     critic: agent('critic'),
-    explainer: actionHas('critic', /^explanation/),
-    risk: agent('riskguard'),
-    email: actionHas('riskguard', /email draft approved|waiting for the renter|fixed template/),
-    review: actionHas('critic', /needs a human check/),
-    approve: actionHas('riskguard', /waiting for the renter/),
+    explainer: reached.has('explainer'),
+    risk: reached.has('risk'),
+    email: reached.has('email'),
+    review: reached.has('review'),
+    approve: reached.has('approve'),
   };
   const mark = (id, role) => role === 'human'
     ? `<span class="aw-ico">${icon('person')}</span>`
@@ -2007,6 +2134,12 @@ function countPhrase(n, one, many) {
   return `${n} ${n === 1 ? one : many}`;
 }
 
+function runningTitle(entry) {
+  if (!state.liveRun) return thoughtLine(entry);
+  const action = String(entry?.action || '').trim();
+  return action || state.checkStatus || 'I’m checking the listing…';
+}
+
 function thoughtLine(entry) {
   if (!entry) return 'I’m starting…';
   const action = String(entry.action || '');
@@ -2062,6 +2195,8 @@ function thoughtLine(entry) {
     }
     const keptExplain = action.match(/^explanation of (\w+): using the rule outcome/);
     if (keptExplain) return `As a critic, I’ll use the rule’s own wording for the ${CHECK_SAY[keptExplain[1]] || 'check'}…`;
+    const wrote = action.match(/^explanation of (\w+): kept/);
+    if (wrote) return `I’m writing the ${CHECK_SAY[wrote[1]] || 'check'} finding…`;
     if (/needs a human check/.test(action)) return 'As a critic, I see this needs a person…';
     if (/^dropped /.test(action)) return 'Actually, I realized that check doesn’t hold…';
     return 'As a critic, I’m looking again…';
@@ -2145,7 +2280,8 @@ function traceHtml() {
   const elapsed = rows.length > 1 ? seconds(Date.parse(rows.at(-1).t) - Date.parse(rows[0].t)) : rows.length ? '0s' : '';
   const running = state.playing;
   const waiting = !running && rep.questions?.length;
-  const title = running ? thoughtLine(rows.at(-1)) : waiting ? 'Waiting on you' : 'Checked';
+  const title = running ? runningTitle(rows.at(-1)) : waiting ? 'Waiting on you' : 'Checked';
+  const titleClass = running ? (rows.length ? 'think-in' : 'shimmer') : '';
   const open = running || state.thoughtOpen;
   const statusIco = running || waiting
     ? thinkMark(rows.at(-1), waiting)
@@ -2154,7 +2290,7 @@ function traceHtml() {
     <button type="button" class="tree-head cot-trigger" data-action="thought" aria-expanded="${open}">
       <span class="chev ${open ? 'open' : ''}">${icon('chev')}</span>
       ${statusIco}
-      <span class="tree-title ${running ? 'think-in' : ''}">${title}</span>
+      <span class="tree-title ${titleClass}">${esc(title)}</span>
       <span class="tree-meta">${elapsed}${rows.length ? ` · ${rows.length} steps` : ''}</span>
     </button>
     ${open ? `<div class="disclose ${traceEnter && !reduced ? '' : 'in'}" data-disclose="trace"><div class="disclose-body"><ul>${rows.map((entry, i) => treeRow(entry, i, rows)).join('')}</ul></div></div>` : ''}

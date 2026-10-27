@@ -4,10 +4,11 @@ import type { AddressInfo } from 'node:net';
 import { test } from 'node:test';
 import { createApiServer } from '../src/server.ts';
 import type { Input } from '../src/agent.ts';
+import type { TraceEntry } from '../src/log.ts';
 
 async function withServer(
   action: (url: string) => Promise<void>,
-  analyze: (input: Input) => Promise<unknown> = async (input) => ({ input }),
+  analyze: (input: Input, hooks?: { onTrace?: (entry: TraceEntry) => void }) => Promise<unknown> = async (input) => ({ input }),
   apiKey = 'test-api-key',
 ) {
   const server = createApiServer(analyze, {
@@ -147,5 +148,33 @@ test('GET /check returns method not allowed', async () => {
     const response = await fetch(`${url}/check`);
 
     assert.equal(response.status, 405);
+  });
+});
+
+test('POST /check streams each step when the client asks for a live trace', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/check`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/x-ndjson',
+        'x-api-key': 'test-api-key',
+      },
+      body: JSON.stringify({ listing: 'Fictional listing text' }),
+    });
+
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('content-type') ?? '', /application\/x-ndjson/);
+    const lines = (await response.text()).trim().split('\n').map((line) => JSON.parse(line));
+    assert.deepEqual(lines.map((line) => line.type), ['trace', 'trace', 'report']);
+    assert.equal(lines[0].entry.action, 'start');
+    assert.equal(lines[1].entry.action, 'explanation of area: kept');
+    assert.equal(lines[2].report.runId, 'stream-test');
+  }, async (input, hooks) => {
+    const start: TraceEntry = { t: '2026-01-01T00:00:00.000Z', step: 1, agent: 'planner', action: 'start' };
+    const kept: TraceEntry = { t: '2026-01-01T00:00:01.000Z', step: 2, agent: 'critic', action: 'explanation of area: kept' };
+    hooks?.onTrace?.(start);
+    hooks?.onTrace?.(kept);
+    return { input, runId: 'stream-test', trace: [] };
   });
 });

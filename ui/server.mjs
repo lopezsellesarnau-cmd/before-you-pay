@@ -2,6 +2,7 @@
 import { createServer } from 'node:http';
 import { readFile, realpath } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
+import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -106,12 +107,27 @@ createServer(async (req, res) => {
         ...(photos?.length ? { photos } : {}),
       };
       await wakeChecker();
+      const wantStream = (req.headers.accept || '').includes('application/x-ndjson');
       const upstream = await fetch(`${checkOrigin}/check`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': checkKey },
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': checkKey,
+          ...(wantStream ? { accept: 'application/x-ndjson' } : {}),
+        },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(8 * 60 * 1000),
       });
+      const upstreamType = upstream.headers.get('content-type') || '';
+      if (wantStream && upstream.ok && upstreamType.includes('application/x-ndjson') && upstream.body) {
+        res.writeHead(upstream.status, {
+          'Content-Type': 'application/x-ndjson; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'X-Accel-Buffering': 'no',
+        });
+        Readable.fromWeb(upstream.body).pipe(res);
+        return;
+      }
       const text = await upstream.text();
       res.writeHead(upstream.status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(text);
