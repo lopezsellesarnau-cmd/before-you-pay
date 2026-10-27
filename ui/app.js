@@ -2823,7 +2823,11 @@ function layoutPixelBars() {
   const root = document.querySelector('.report');
   if (!root) return;
   const cell = mapCellPx();
-  if (cell) root.style.setProperty('--dither-cell', `${cell}px`);
+  if (cell) {
+    root.style.setProperty('--dither-cell', `${cell}px`);
+    /* Same gap the map leaves between cells: pitch 1.4, cell width 1. */
+    root.style.setProperty('--dither-gap', `${Math.round(cell * (SCENE_P - 1) * 100) / 100}px`);
+  }
   const stroke = cell || 5;
 
   root.querySelectorAll('.segments').forEach((bar) => {
